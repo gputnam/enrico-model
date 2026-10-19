@@ -1,0 +1,19 @@
+# Mono-energetic 1 GeV muon neutrinos on carbon.
+run:
+  events: 100000
+  seed: 7
+  threads: 8
+  output: mono_1GeV_C12.root
+
+beam:
+  pdg: 14
+  flux: {type: mono, energy: 1.0}
+
+target: "1000060120:1"
+
+channels:
+  - type: CCQE
+    nuclear_model: {type: RFG}
+    form_factors: {vector: BBBA05, axial: dipole, MA: 1.03}
+
+fsi: {type: none}

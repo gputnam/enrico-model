@@ -1,0 +1,7 @@
+build/
+data/cache/*
+!data/cache/.gitkeep
+*.root
+!data/flux/**/*.root
+*.hepmc3
+runs/

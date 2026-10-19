@@ -1,0 +1,25 @@
+# MINERvA medium-energy (ME) FHC muon-neutrino flux, nu-e scattering constrained:
+# E. Valencia et al. (MINERvA), Phys. Rev. D 100, 092001 (2019) [arXiv:1906.00111], ancillary CSV.
+run:
+  events: 100000
+  seed: 1
+  threads: 16
+  output: minerva_me_fhc_numu_CH.root
+
+beam:
+  pdg: 14
+  flux:
+    type: histogram
+    format: csv
+    file: data/flux/minerva_me_2019/MINERvA_Flux_pdg14_500MeVBins.csv
+    density: per_GeV
+    units: nu/m^2/POT
+
+target: "1000060120:1,1000010010:1"
+
+channels:
+  - type: CCQE
+    nuclear_model: {type: RFG}
+    form_factors: {vector: BBBA05, axial: dipole, MA: 1.03}
+
+fsi: {type: none}

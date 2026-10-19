@@ -1,0 +1,41 @@
+# MINERvA low-energy (LE) NuMI FHC wrong-sign muon-antineutrino flux on the MINERvA tracker (CH).
+# Flux: L. Aliaga et al. (MINERvA), Phys. Rev. D 94, 092005 (2016) [arXiv:1607.00704],
+#       ancillary file minerva_flux.root, histogram numu_fhc (nu / m^2 / 1e6 POT per 0.5 GeV bin).
+run:
+  events: 100000
+  seed: 20261019
+  threads: 16
+  output: minerva_le_fhc_numubar_CH.root
+
+beam:
+  pdg: -14
+  flux:
+    type: histogram
+    format: root
+    file: data/flux/minerva_le_2016/minerva_flux.root
+    histogram: numubar_fhc
+    density: per_bin     # contents are per 0.5 GeV bin -> converted to per GeV
+    scale: 1.0e-6        # per 1e6 POT -> per POT
+    units: nu/m^2/POT
+    emin: 0.0
+    emax: 100.0
+
+target:                  # CH: one carbon and one hydrogen nucleus per unit
+  - {pdg: 1000060120, count: 1}
+  - {pdg: 1000010010, count: 1}
+
+channels:
+  - type: CCQE
+    nuclear_model: {type: RFG}          # global relativistic Fermi gas (Smith-Moniz)
+    form_factors:
+      vector: BBBA05
+      axial: dipole
+      MA: 1.03
+      gA: 1.2723
+
+fsi: {type: none}
+
+xsec_table:
+  nodes: 150
+  samples: 200000
+  cache: data/cache

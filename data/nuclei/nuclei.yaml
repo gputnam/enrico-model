@@ -1,0 +1,21 @@
+# Nuclear parameters for the global relativistic Fermi gas.
+#   mass : nuclear mass [GeV] = atomic mass (AME2020) * u - Z * m_e (electron binding neglected)
+#   kF   : Fermi momentum [GeV] (kF_p / kF_n override it for N != Z nuclei)
+#   Eb   : mean removal ("binding") energy epsilon_b [GeV] (Smith-Moniz)
+# Sources:
+#   C12, Ca40, Pb208 kF and Eb: quasi-elastic electron scattering fits of
+#     E.J. Moniz et al., Phys. Rev. Lett. 26, 445 (1971) [C: 221/25, Ca: 251/28, Pb: 265/44 MeV].
+#   O16, Ar40, Fe56: values in common use in neutrino generators, interpolated from the same fits;
+#     for N != Z (Ar, Fe, Pb) separate proton/neutron values are given whose average matches the
+#     symmetric-matter fit (e.g. Pb: (0.245+0.283)/2 ~ 0.265).
+#   He4: from the same systematics (light nucleus, kF ~ 0.17 is often used; treat with care).
+nuclei:
+  - {name: n,     Z: 0,  A: 1,   mass: 0.93956542}   # free neutron (for tests / nucleon targets)
+  - {name: H1,    Z: 1,  A: 1,   mass: 0.93827209}
+  - {name: He4,   Z: 2,  A: 4,   mass: 3.727379,   kF: 0.169, Eb: 0.0170}
+  - {name: C12,   Z: 6,  A: 12,  mass: 11.174863,  kF: 0.221, Eb: 0.0250}
+  - {name: O16,   Z: 8,  A: 16,  mass: 14.895081,  kF: 0.225, Eb: 0.0270}
+  - {name: Ar40,  Z: 18, A: 40,  mass: 37.215526,  kF_p: 0.242, kF_n: 0.259, Eb: 0.0295}
+  - {name: Ca40,  Z: 20, A: 40,  mass: 37.214698,  kF: 0.251, Eb: 0.0280}
+  - {name: Fe56,  Z: 26, A: 56,  mass: 52.089777,  kF_p: 0.251, kF_n: 0.263, Eb: 0.0360}
+  - {name: Pb208, Z: 82, A: 208, mass: 193.687123, kF_p: 0.245, kF_n: 0.283, Eb: 0.0440}
