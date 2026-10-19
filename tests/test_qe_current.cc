@@ -114,7 +114,7 @@ TEST_CASE("Monte Carlo free-nucleon cross section equals integrated Llewellyn Sm
       const double ref = IntegratedLS(E, ffm, nu > 0 ? 1 : -1);
       INFO("nu=" << nu << " E=" << E << " MC=" << mean << " +- " << err << " LS=" << ref);
       // The generator uses the physical n and p masses while the LS closed form uses their average;
-      // this shifts nu-n by up to ~0.6% (with equal masses the two agree to < 0.05%, see
+      // this shifts nu-n by up to ~0.6% above 0.25 GeV (with equal masses the two agree to <= 0.1%, see
       // theory/quasielastic.md, validation section).
       CHECK(std::abs(mean - ref) < 3 * err + 7e-3 * ref);
     }

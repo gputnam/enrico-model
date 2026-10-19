@@ -38,18 +38,17 @@ SachsFormFactors DipoleGalsterFormFactors::Sachs(double Q2) const {
 }
 
 SachsFormFactors BBBA05FormFactors::Sachs(double Q2) const {
-  // Table 1 of hep-ex/0602017 (G_En > 0, d/u = 0.2 fit not needed here).
+  // Table 1 of hep-ex/0602017; tau = Q2 / 4M^2 with a single nucleon mass M.
   static const double aEp[3] = {1.0, -0.0578, 0.0}, bEp[4] = {11.1, 13.6, 33.0, 0.0};
   static const double aMp[3] = {1.0, 0.150, 0.0}, bMp[4] = {11.1, 19.6, 7.54, 0.0};
   static const double aEn[3] = {0.0, 1.25, 1.30}, bEn[4] = {-9.86, 305.0, -758.0, 802.0};
   static const double aMn[3] = {1.0, 1.81, 0.0}, bMn[4] = {14.1, 20.7, 68.7, 0.0};
-  const double tauP = Q2 / (4 * kMassProton * kMassProton);
-  const double tauN = Q2 / (4 * kMassNeutron * kMassNeutron);
+  const double tau = Q2 / (4 * kMassNucleon * kMassNucleon);
   SachsFormFactors s;
-  s.GEp = Kelly(tauP, aEp, bEp);
-  s.GMp = kMuProton * Kelly(tauP, aMp, bMp);
-  s.GEn = Kelly(tauN, aEn, bEn);
-  s.GMn = kMuNeutron * Kelly(tauN, aMn, bMn);
+  s.GEp = Kelly(tau, aEp, bEp);
+  s.GMp = kMuProton * Kelly(tau, aMp, bMp);
+  s.GEn = Kelly(tau, aEn, bEn);
+  s.GMn = kMuNeutron * Kelly(tau, aMn, bMn);
   return s;
 }
 

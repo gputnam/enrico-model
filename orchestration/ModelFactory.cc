@@ -42,6 +42,7 @@ std::shared_ptr<const NuclearModel> MakeNuclearModel(const YAML::Node& node) {
   const std::string type = Get<std::string>(node, "type", "RFG");
   if (type == "RFG") {
     RelativisticFermiGas::Options o;
+    o.bodekRitchie = Get<std::string>(node, "tail", "none") == "bodek_ritchie";
     o.tailFraction = Get<double>(node, "tail_fraction", 0.0);
     o.tailCutoff = Get<double>(node, "tail_cutoff", 0.5);
     return std::make_shared<RelativisticFermiGas>(o);

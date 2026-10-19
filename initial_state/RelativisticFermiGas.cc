@@ -1,17 +1,31 @@
 #include "initial_state/RelativisticFermiGas.h"
 
 #include <cmath>
+#include <string>
 
 #include "core/Constants.h"
 #include "core/PDG.h"
 
 namespace nuflow {
 
+std::string RelativisticFermiGas::Name() const {
+  if (opt_.bodekRitchie) return "RFG+BodekRitchie";
+  if (opt_.tailFraction > 0) return "RFG+tail(" + std::to_string(opt_.tailFraction) + "," + std::to_string(opt_.tailCutoff) + ")";
+  return "RFG";
+}
+
+double RelativisticFermiGas::TailFraction(double kF) const {
+  if (!opt_.bodekRitchie) return opt_.tailFraction;
+  const double x = kF * kBodekRitchieA / constants::kPi;
+  return 6 * x * x;  // integral of the 1/k^4 tail of Bodek-Ritchie Eq. (6)
+}
+
 double RelativisticFermiGas::SampleMomentum(double kF, Random& rng) const {
-  // Fermi sea: n(k) ~ k^2 on [0, kF]  ->  k = kF * u^(1/3).
-  if (opt_.tailFraction <= 0 || rng.Uniform() >= opt_.tailFraction) return kF * std::cbrt(rng.UniformOpen());
+  // Fermi sea: n(k) ~ const on [0, kF], i.e. k^2 dk  ->  k = kF * u^(1/3).
+  const double f = TailFraction(kF);
+  if (f <= 0 || rng.Uniform() >= f) return kF * std::cbrt(rng.UniformOpen());
   // Tail: k^2 n(k) ~ k^2 / k^4 = 1/k^2 on [kF, kc]  ->  inverse CDF of 1/k^2.
-  const double kc = opt_.tailCutoff;
+  const double kc = TailCutoff();
   const double u = rng.Uniform();
   return 1.0 / (1.0 / kF - u * (1.0 / kF - 1.0 / kc));
 }

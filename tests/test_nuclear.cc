@@ -65,4 +65,22 @@ TEST_CASE("Fermi gas with high-momentum tail", "[nuclear]") {
     above += k > C.kFermiNeutron;
   }
   CHECK(double(above) / N == Approx(0.2).margin(0.005));
+
+  // Bodek-Ritchie: tail fraction 6 (kF a / pi)^2 = 11.9% for carbon, 1/k^4 up to 4 GeV.
+  RelativisticFermiGas::Options br;
+  br.bodekRitchie = true;
+  RelativisticFermiGas brModel(br);
+  CHECK(brModel.TailFraction(0.221) == Approx(6 * std::pow(0.221 * 2 / M_PI, 2)));
+  CHECK(brModel.TailFraction(0.221) == Approx(0.119).margin(0.001));
+  above = 0;
+  int above1 = 0;
+  for (int i = 0; i < N; ++i) {
+    const double k = brModel.SampleMomentum(0.221, rng);
+    REQUIRE(k <= 4.0);
+    above += k > 0.221;
+    above1 += k > 1.0;
+  }
+  CHECK(double(above) / N == Approx(0.119).margin(0.004));
+  // P(k > 1 | tail) = (1/1 - 1/4) / (1/kF - 1/4)
+  CHECK(double(above1) / above == Approx((1.0 - 0.25) / (1 / 0.221 - 0.25)).margin(0.01));
 }

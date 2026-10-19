@@ -101,7 +101,7 @@ $$\frac{d\sigma}{dX} = \texttt{flux\_avg\_xsec}\times\frac{N(X)}{N_\text{events}
 - **Reproducibility:** events are generated in batches. Batch $b$ uses RNG stream $(\text{seed}, b)$ and batches are written in order, so the output depends only on the seed, never on the thread count.
 - **Speed:** a trial of stages 2 and 3 takes about 0.2 µs, and the QE acceptance is about 50%.
   - Without I/O, generation runs at 1.3×10⁶ events/s on one thread and 6.6×10⁶ events/s on 16 threads.
-  - With output, throughput is set by the ROOT writer: about 2.8×10⁵ events/s. The 1M-event MINERvA test takes 3.6 s of generation (about 6 s wall, including building the cross-section table).
+  - With output, throughput is set by the ROOT writer: about 2.8×10⁵ events/s. The 1M-event MINERvA test takes 3.6–4.6 s of generation, depending on machine load (6–7 s wall, including building the cross-section table).
 
 ## Repository layout
 
