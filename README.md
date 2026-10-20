@@ -118,7 +118,7 @@ config/          example run configurations
 data/            flux files (with provenance READMEs), nuclear parameters, xsec cache
 theory/          physics documentation per model
 tests/           Catch2 unit and physics-validation tests
-scripts/         validation plotting
+scripts/         validation plotting, run_loop_prediction.sh (closed loop)
 ```
 
 ## Adding a model
@@ -129,6 +129,30 @@ scripts/         validation plotting
    - For a kinematics generator, implement `Generate`. It returns the weight $d\sigma/(\text{proposal density})$ in 10⁻³⁸ cm² per struck nucleon (or pair).
    - For an FSI model, implement `Propagate`.
 2. Register the new type in `orchestration/ModelFactory.cc`.
-3. Add a theory note in `theory/`.
+3. Add a theory note in `theory/` (and index it in `theory/README.md`).
+4. Add the new `.cc` files to the `add_library` list in `CMakeLists.txt`, and a test in `tests/`.
+5. Use a NuHepMC-conformant `ProcessId` (100 coherent, 200 CCQE, 300 CC MEC/2p2h, 400 CC RES,
+   500 CC SIS/non-resonant, 600 CC DIS; NC = +50): the measurement bridge maps it to the GENIE
+   interaction type (`measurement/xsec/xsec/genpred.py`).
 
 The cross-section tables and the unweighting are generic: they come from the channel's own trial weight, so a new channel needs no orchestration changes.
+
+**Cross-section cache.** `data/cache/` is keyed on the channel's YAML node. A *code* change that
+alters the trial weight for an unchanged config is not detected: bump `kCacheVersion` in
+`orchestration/XSecTableBuilder.cc` (or `rm -rf data/cache/*`).
+
+## Closed-loop usage (orchestrate/)
+
+The closed loop compares this model with the MINERvA measurements in `measurement/`:
+
+```bash
+scripts/run_loop_prediction.sh <workspace>/model.root     # build + tests + 2M events, ~15 s
+```
+
+uses `config/minerva_me_fhc_numu_CH_loop.yaml`: νμ on CH with the *measurement* flux
+(`data/flux/minerva_me_fhc_measurement/`, the data-POT-weighted ν–e constrained ME FHC flux the
+measurements divide by).  Change the model in the `channels`/`fsi` sections (and in code); keep the
+`run`, `beam` and `target` sections fixed so predictions remain comparable between iterations.
+Predictions are normalised per nucleon (`flux_avg_xsec / nucleons_per_target`) and evaluated in each
+measurement's own signal definition, so every final-state particle written with status 1 matters:
+the measurements classify events by their final-state topology (muon, pions, protons, photons).

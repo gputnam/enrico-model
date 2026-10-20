@@ -1,0 +1,32 @@
+# Closed-loop prediction config (orchestrate/): MINERvA ME FHC numu on CH with the *measurement*
+# flux, i.e. the data-POT-weighted, nu-e-constrained CV flux that measurement/ divides by
+# (exported with `python -m xsec.export_flux`, 0-100 GeV).  Model predictions made with this
+# config are directly comparable to the measured cross sections (see measurement/xsec/xsec/genpred.py).
+#
+# The theorist edits the `channels`/`fsi` sections (or adds code) to change the model; keep the
+# run/beam/target sections fixed so predictions stay comparable across iterations.
+run:
+  events: 2000000
+  seed: 20261020
+  threads: 16
+  output: minerva_me_fhc_numu_CH_loop.root
+
+beam:
+  pdg: 14
+  flux:
+    type: histogram
+    format: csv
+    file: data/flux/minerva_me_fhc_measurement/flux_pdg14.csv
+    density: per_GeV
+    units: nu/m^2/POT
+    emin: 0.0
+    emax: 100.0
+
+target: "1000060120:1,1000010010:1"
+
+channels:
+  - type: CCQE
+    nuclear_model: {type: RFG}
+    form_factors: {vector: BBBA05, axial: dipole, MA: 1.03}
+
+fsi: {type: none}
