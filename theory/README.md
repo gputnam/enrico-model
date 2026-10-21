@@ -6,6 +6,7 @@ Each physics component in `nuflow` has a note here describing the model, the equ
 |---|---|
 | [framework.md](framework.md) | Staged sampling algorithm, cross-section tables, unweighting, normalization, reproducibility |
 | [quasielastic.md](quasielastic.md) | Stage 1 `CCQEChannel`, stage 2 `RelativisticFermiGas` / `FreeNucleon`, stage 3 `QuasiElasticKinematics`, `FormFactors`, `QECurrent` |
+| [pion_production.md](pion_production.md) | Stage 1 `CCRESChannel`, stage 3 `ResonantPionKinematics`, `PionProductionCurrent` (HNV Δ(1232) + chiral background), `core/Dirac.h` |
 | [fsi_none.md](fsi_none.md) | Stage 4 `TransparentNucleus` |
 
 ## Conventions

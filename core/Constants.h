@@ -21,6 +21,9 @@ inline constexpr double kMassElectron = 0.51099895e-3;
 inline constexpr double kMassMuon = 0.1056583755;
 inline constexpr double kMassTau = 1.77686;
 inline constexpr double kMassPionCharged = 0.13957039;
+inline constexpr double kMassPionNeutral = 0.1349768;
+// Isospin-averaged pion mass (2 m_pi+ + m_pi0)/3, used inside hadronic amplitudes.
+inline constexpr double kMassPionAverage = (2 * kMassPionCharged + kMassPionNeutral) / 3;
 inline constexpr double kAtomicMassUnit = 0.93149410;
 
 // Nucleon magnetic moments [nuclear magnetons]

@@ -30,6 +30,12 @@ class InteractionChannel {
   virtual int ProcessId() const = 0;  // NuHepMC signal_process_id
   virtual bool Applies(int nuPdg, const Nucleus& nucleus) const = 0;
   virtual HitNucleonRequest Request(int nuPdg) const = 0;
+  // Request used for one trial. Channels acting on either nucleon species (e.g. pion production)
+  // override this to draw the species, with Multiplicity() counting all candidate nucleons. The
+  // default is deterministic and consumes no random numbers.
+  virtual HitNucleonRequest SampleRequest(int nuPdg, const Nucleus& nucleus, Random& rng) const {
+    return Request(nuPdg);
+  }
   // Number of independent struck-nucleon configurations (e.g. number of neutrons for nu CCQE);
   // the nuclear cross section is this times the mean per-nucleon trial weight.
   virtual double Multiplicity(int nuPdg, const Nucleus& nucleus) const = 0;
@@ -43,7 +49,7 @@ class InteractionChannel {
   double Trial(int nuPdg, double enu, const Nucleus& nucleus, Event& event, Random& rng) const {
     const NuclearModel& model = NuclearModelFor(nucleus);
     InitialState init;
-    model.Sample(nucleus, Request(nuPdg), init, rng);
+    model.Sample(nucleus, SampleRequest(nuPdg, nucleus, rng), init, rng);
     return kinematics_->Generate(nuPdg, enu, nucleus, init, model, event, rng);
   }
 

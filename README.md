@@ -4,9 +4,9 @@
 
 | Stage | Directory | Base class | Implementations (v0.1) |
 |---|---|---|---|
-| 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel` |
+| 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel` |
 | 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `FreeNucleon` |
-| 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`) |
+| 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`) |
 | 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI) |
 
 The `orchestration/` layer does the rest:
@@ -17,7 +17,7 @@ The `orchestration/` layer does the rest:
 
 Shared types (four-vectors, RNG, event record, nuclei, configuration) live in `core/`, and the flux sources and readers in `flux/`.
 
-The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md).
+The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), and single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md).
 
 ## Build
 
@@ -60,9 +60,16 @@ Runs are configured in YAML (see `config/`).
 | `beam.pdg` | Neutrino species |
 | `beam.flux` | `{type: mono, energy: E}`, `{type: flat, emin, emax}`, or a histogram (see below) |
 | `target` | A list of `{pdg, count}` or the string `"1000060120:1,1000010010:1"` |
-| `channels` | A list of channels with their stage-2 and stage-3 configuration |
+| `channels` | A list of channels with their stage-2 and stage-3 configuration (see below) |
 | `fsi` | The stage-4 model |
 | `xsec_table` | Energy nodes, MC samples per node, cache directory |
+
+Channel types:
+- `CCQE`: `nuclear_model`, `form_factors: {vector: BBBA05|dipole, axial: dipole|zexp, MA, gA, ...}`, `proposal_q2_scale`.
+- `CCRES` (single pion, Δ region, [theory/pion_production.md](theory/pion_production.md)): `nuclear_model`,
+  `delta: {C5A0: 1.00, MA: 0.93, mass: 1.232, f_star: 2.14}`, `background: true|false`,
+  `nucleon_form_factors` (background terms; default dipole/Galster, gA 1.26, MA 1.05), `w_max` (default 1.6 GeV),
+  `proposal_q2_scale`, `proposal_bw_fraction`.
 
 A histogram flux is given as `{type: histogram, format: root|csv|minerva_le_txt|table, file, histogram, density: per_bin|per_GeV, scale, units, emin, emax}`.
 
@@ -106,9 +113,9 @@ $$\frac{d\sigma}{dX} = \texttt{flux\_avg\_xsec}\times\frac{N(X)}{N_\text{events}
 ## Repository layout
 
 ```
-core/            event record, four-vectors, RNG, PDG helpers, nuclei, YAML config
+core/            event record, four-vectors, Dirac matrices, RNG, PDG helpers, nuclei, YAML config
 flux/            FluxSource, MonoEnergeticFlux, HistogramFlux, flux file readers
-channel/         stage 1: InteractionChannel, CCQEChannel, ChannelSelector (sigma tables)
+channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, ChannelSelector (sigma tables)
 initial_state/   stage 2: NuclearModel, RelativisticFermiGas, FreeNucleon
 kinematics/      stage 3: KinematicsGenerator, QuasiElasticKinematics, FormFactors, QECurrent
 fsi/             stage 4: FSIModel, TransparentNucleus
@@ -124,7 +131,7 @@ scripts/         validation plotting, run_loop_prediction.sh (closed loop)
 ## Adding a model
 
 1. Derive from the base class of the stage you are extending.
-   - For a channel, implement `Applies`, `Request` (which nucleons and how many), `Multiplicity` and `ProcessId`.
+   - For a channel, implement `Applies`, `Request` (which nucleons and how many), `Multiplicity` and `ProcessId`. A channel acting on either nucleon species overrides `SampleRequest` to draw the species per trial (see `CCRESChannel`).
    - For a nuclear model, implement `Sample` and `PauliBlocked`.
    - For a kinematics generator, implement `Generate`. It returns the weight $d\sigma/(\text{proposal density})$ in 10⁻³⁸ cm² per struck nucleon (or pair).
    - For an FSI model, implement `Propagate`.

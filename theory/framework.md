@@ -89,5 +89,5 @@ Two conversions are common:
 
 ## 6. Interfaces for future channels
 
-- `HitNucleonRequest` already carries the number and species of nucleons a channel needs. A 2p2h/MEC channel requests two nucleons from the same `NuclearModel`. Its `Multiplicity` is the number of pairs, or 1 if the model's normalization already includes the pair counting.
+- `HitNucleonRequest` already carries the number and species of nucleons a channel needs. Channels that act on either species (single-pion production) override `InteractionChannel::SampleRequest` to draw the species per trial (proton with probability $Z/A$) and set the multiplicity to $A$; the default implementation is deterministic and consumes no random numbers, so CCQE streams are unchanged. A 2p2h/MEC channel requests two nucleons from the same `NuclearModel`. Its `Multiplicity` is the number of pairs, or 1 if the model's normalization already includes the pair counting.
 - The event record separates the primary vertex (status 22 for hadrons that enter FSI) from the FSI output (status 1). An intranuclear cascade only needs to consume status-22 particles and append status-1 ones.

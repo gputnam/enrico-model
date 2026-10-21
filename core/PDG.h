@@ -10,6 +10,9 @@ namespace nuflow::pdg {
 
 inline constexpr int kElectron = 11, kNuE = 12, kMuon = 13, kNuMu = 14, kTau = 15, kNuTau = 16;
 inline constexpr int kProton = 2212, kNeutron = 2112;
+inline constexpr int kPiPlus = 211, kPiMinus = -211, kPiZero = 111;
+
+inline double PionMass(int code) { return code == kPiZero ? constants::kMassPionNeutral : constants::kMassPionCharged; }
 
 inline bool IsNeutrino(int code) {
   const int a = std::abs(code);

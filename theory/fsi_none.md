@@ -12,7 +12,7 @@
 
 The struck nucleon also leaves without paying any further energy cost. The removal energy $\epsilon_b$ of the Fermi gas (see [quasielastic.md](quasielastic.md)) is accounted for in the remnant's excitation energy, so four-momentum is conserved exactly event by event.
 
-**Where it matters.** Real nuclei change the observed hadronic final states considerably. In carbon at GeV energies, for example, an outgoing proton reinteracts with probability of order 30–40%. Comparisons with data on hadron kinematics should therefore treat this model as a baseline (the "no-FSI" truth used for unfolding studies). The lepton kinematics are unaffected by FSI in the impulse approximation.
+**Where it matters.** Real nuclei change the observed hadronic final states considerably. In carbon at GeV energies, for example, an outgoing proton reinteracts with probability of order 30–40%. Pions from the CCRES channel ([pion_production.md](pion_production.md)) also escape unchanged: there is no pion absorption (which would move CC1π events into the QE-like topology), charge exchange, or rescattering (which softens the $T_\pi$ spectrum), so the predicted CC1π$^+$ $T_\pi$ spectrum is harder than measured. Comparisons with data on hadron kinematics should therefore treat this model as a baseline (the "no-FSI" truth used for unfolding studies). The lepton kinematics are unaffected by FSI in the impulse approximation.
 
 **Interface for future models.** An intranuclear cascade (INC) model derives from `FSIModel` and implements `Propagate(nucleus, event, rng)`.
 - It reads the status-22 hadrons and their positions. Positions are not yet in the event record; a cascade will add a vertex position to `Particle`.

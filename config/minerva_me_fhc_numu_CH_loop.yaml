@@ -28,5 +28,13 @@ channels:
   - type: CCQE
     nuclear_model: {type: RFG}
     form_factors: {vector: BBBA05, axial: dipole, MA: 1.03}
+  # Delta(1232)-region single-pion production: HNV model (Delta pole + crossed Delta + chiral
+  # background), C5A(0) = 1.00, M_A^Delta = 0.93 GeV (fit IV of arXiv:1001.4416), W < 1.6 GeV.
+  - type: CCRES
+    nuclear_model: {type: RFG}
+    delta: {C5A0: 1.00, MA: 0.93}
+    background: true
+    nucleon_form_factors: {vector: dipole, axial: dipole, gA: 1.26, MA: 1.05}
+    w_max: 1.6
 
 fsi: {type: none}

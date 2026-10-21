@@ -4,11 +4,13 @@
 #include <stdexcept>
 
 #include "channel/CCQEChannel.h"
+#include "channel/CCRESChannel.h"
 #include "core/Config.h"
 #include "fsi/TransparentNucleus.h"
 #include "initial_state/FreeNucleon.h"
 #include "initial_state/RelativisticFermiGas.h"
 #include "kinematics/QuasiElasticKinematics.h"
+#include "kinematics/ResonantPionKinematics.h"
 
 namespace nuflow {
 
@@ -62,6 +64,29 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
       auto kin = std::make_shared<QuasiElasticKinematics>(NucleonFormFactors::FromConfig(c["form_factors"]), o);
       out.push_back(std::make_shared<CCQEChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+    } else if (type == "CCRES") {
+      // Delta(1232) region pion production, HNV model (theory/pion_production.md).
+      HNVParameters par;
+      const YAML::Node d = c["delta"];
+      par.C5A0 = Get<double>(d, "C5A0", par.C5A0);
+      par.MADelta = Get<double>(d, "MA", par.MADelta);
+      par.MDelta = Get<double>(d, "mass", par.MDelta);
+      par.fStar = Get<double>(d, "f_star", par.fStar);
+      par.background = Get<bool>(c, "background", par.background);
+      par.gA = Get<double>(c["nucleon_form_factors"], "gA", par.gA);
+      // Nucleon form factors of the background terms (HNV: dipole/Galster vector, g_A = 1.26, M_A = 1.05).
+      YAML::Node nff = c["nucleon_form_factors"] ? YAML::Clone(c["nucleon_form_factors"]) : YAML::Node(YAML::NodeType::Map);
+      if (!nff["vector"]) nff["vector"] = "dipole";
+      if (!nff["axial"]) nff["axial"] = "dipole";
+      if (!nff["gA"]) nff["gA"] = par.gA;
+      if (!nff["MA"]) nff["MA"] = 1.05;
+      ResonantPionKinematics::Options o;
+      o.wMax = Get<double>(c, "w_max", o.wMax);
+      o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
+      o.bwFraction = Get<double>(c, "proposal_bw_fraction", o.bwFraction);
+      auto kin = std::make_shared<ResonantPionKinematics>(
+          PionProductionCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
+      out.push_back(std::make_shared<CCRESChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
     } else {
       throw std::runtime_error("channels: unknown type '" + type + "'");
     }
