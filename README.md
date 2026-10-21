@@ -11,7 +11,7 @@
 
 The `orchestration/` layer does the rest:
 - builds the total-cross-section tables, caching them on disk;
-- samples $E_\nu$ from $\Phi(E)\,\sigma_\text{tot}(E)$;
+- samples $`E_\nu`$ from $`\Phi(E)\,\sigma_\text{tot}(E)`$;
 - runs the four stages on worker threads;
 - writes the output.
 
@@ -94,11 +94,15 @@ The particle status codes follow NuHepMC:
 
 Events are **unweighted** (`weight = 1`). The absolute normalization is set by `flux_avg_xsec`, in 10⁻³⁸ cm² per target unit (e.g. per CH):
 
-$$\frac{d\sigma}{dX} = \texttt{flux\_avg\_xsec}\times\frac{N(X)}{N_\text{events}\,\Delta X}.$$
+```math
+\frac{d\sigma}{dX} = \sigma_\text{flux-avg}\times\frac{N(X)}{N_\text{events}\,\Delta X},
+```
+
+where $`\sigma_\text{flux-avg}`$ is `flux_avg_xsec`.
 
 ### Reproducibility and performance
 
-- **Reproducibility:** events are generated in batches. Batch $b$ uses RNG stream $(\text{seed}, b)$ and batches are written in order, so the output depends only on the seed, never on the thread count.
+- **Reproducibility:** events are generated in batches. Batch $`b`$ uses RNG stream $`(\text{seed}, b)`$ and batches are written in order, so the output depends only on the seed, never on the thread count.
 - **Speed:** a trial of stages 2 and 3 takes about 0.2 µs, and the QE acceptance is about 50%.
   - Without I/O, generation runs at 1.3×10⁶ events/s on one thread and 6.6×10⁶ events/s on 16 threads.
   - With output, throughput is set by the ROOT writer: about 2.8×10⁵ events/s. The 1M-event MINERvA test takes 3.6–4.6 s of generation, depending on machine load (6–7 s wall, including building the cross-section table).
@@ -126,7 +130,7 @@ scripts/         validation plotting, run_loop_prediction.sh (closed loop)
 1. Derive from the base class of the stage you are extending.
    - For a channel, implement `Applies`, `Request` (which nucleons and how many), `Multiplicity` and `ProcessId`.
    - For a nuclear model, implement `Sample` and `PauliBlocked`.
-   - For a kinematics generator, implement `Generate`. It returns the weight $d\sigma/(\text{proposal density})$ in 10⁻³⁸ cm² per struck nucleon (or pair).
+   - For a kinematics generator, implement `Generate`. It returns the weight $`d\sigma/(\text{proposal density})`$ in 10⁻³⁸ cm² per struck nucleon (or pair).
    - For an FSI model, implement `Propagate`.
 2. Register the new type in `orchestration/ModelFactory.cc`.
 3. Add a theory note in `theory/` (and index it in `theory/README.md`).
@@ -149,7 +153,7 @@ The closed loop compares this model with the MINERvA measurements in `measuremen
 scripts/run_loop_prediction.sh <workspace>/model.root     # build + tests + 2M events, ~15 s
 ```
 
-uses `config/minerva_me_fhc_numu_CH_loop.yaml`: νμ on CH with the *measurement* flux
+This uses `config/minerva_me_fhc_numu_CH_loop.yaml`: νμ on CH with the *measurement* flux
 (`data/flux/minerva_me_fhc_measurement/`, the data-POT-weighted ν–e constrained ME FHC flux the
 measurements divide by).  Change the model in the `channels`/`fsi` sections (and in code); keep the
 `run`, `beam` and `target` sections fixed so predictions remain comparable between iterations.
