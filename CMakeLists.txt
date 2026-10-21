@@ -41,6 +41,9 @@ add_library(nuflow SHARED
   channel/CCMECChannel.cc
   channel/ChannelSelector.cc
   fsi/TransparentNucleus.cc
+  fsi/NuclearDensity.cc
+  fsi/HadronNucleonXSec.cc
+  fsi/IntranuclearCascade.cc
   orchestration/ModelFactory.cc
   orchestration/XSecTableBuilder.cc
   orchestration/EnergySampler.cc
@@ -67,6 +70,8 @@ add_executable(nuflow-qe-table apps/nuflow-qe-table.cc)
 target_link_libraries(nuflow-qe-table PRIVATE nuflow)
 add_executable(nuflow-mec-response apps/nuflow-mec-response.cc)
 target_link_libraries(nuflow-mec-response PRIVATE nuflow)
+add_executable(nuflow-fsi-validate apps/nuflow-fsi-validate.cc)
+target_link_libraries(nuflow-fsi-validate PRIVATE nuflow)
 
 if(NUFLOW_BUILD_TESTS)
   find_package(Catch2 3 REQUIRED)
@@ -80,6 +85,7 @@ if(NUFLOW_BUILD_TESTS)
     tests/test_pion_production.cc
     tests/test_dis.cc
     tests/test_mec.cc
+    tests/test_cascade.cc
   )
   target_link_libraries(nuflow-tests PRIVATE nuflow Catch2::Catch2WithMain)
   include(Catch)

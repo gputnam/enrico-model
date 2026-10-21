@@ -20,6 +20,7 @@ enum ParticleStatus : int {
   kStatusStruckNucleon = 21,  // bound nucleon(s) participating in the primary interaction
   kStatusPreFSI = 22,         // hadron produced at the primary vertex, before final-state interactions
   kStatusRemnant = 23,        // spectator nuclear remnant (may be off-shell / excited)
+  kStatusRemnantPostFSI = 25, // nuclear remnant after the intranuclear cascade (excited; not a status-1 particle)
 };
 
 struct Particle {
@@ -27,6 +28,8 @@ struct Particle {
   int status = 0;
   int mother = -1;  // index into Event::particles; -1 if none
   FourVector p;     // lab-frame four-momentum [GeV]
+  ThreeVector x;    // position relative to the nucleus centre [fm]: primary vertex for status 22,
+                    // exit point for hadrons leaving an intranuclear cascade; 0 otherwise
 };
 
 // Initial-state information produced by stage 2 (nuclear model).
@@ -66,7 +69,7 @@ struct Event {
     weight = 1.0;
   }
   int Add(int pdg, int status, const FourVector& p, int mother = -1) {
-    particles.push_back({pdg, status, mother, p});
+    particles.push_back({pdg, status, mother, p, ThreeVector{}});
     return static_cast<int>(particles.size()) - 1;
   }
 };

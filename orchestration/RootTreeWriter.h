@@ -14,7 +14,7 @@ namespace nuflow {
 
 class RootTreeWriter : public OutputWriter {
  public:
-  static constexpr int kMaxParticles = 64;
+  static constexpr int kMaxParticles = 256;
 
   // compression: ROOT algorithm*100 + level (e.g. 404 = LZ4 level 4, 505 = ZSTD level 5, 0 = none)
   explicit RootTreeWriter(std::string path, int compression = 505);

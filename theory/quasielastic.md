@@ -405,7 +405,7 @@ The panels show $E_\nu$ with $\Phi(E)\sigma(E)$ overlaid, $Q^2$, $p_\mu$, $\cos\
 - **Off-shell ambiguity:** the de Forest prescription is one of several choices. The current is not conserved at order $\epsilon_b$, and the hadron-tensor contraction, Eq. (5), uses the average nucleon mass. Both are sub-percent effects at GeV energies.
 - **Second-class currents and isospin breaking** are neglected, with $G_E^V$ and $G_M^V$ from isospin symmetry.
 - **Multinucleon (2p2h/MEC)** is the separate `CCMEC` channel ([mec.md](mec.md)), relativistic MEC in the same RFG; NN-correlation (1p1h–2p2h interference) terms are not included. Single-pion production in the Δ region is the separate `CCRES` channel ([pion_production.md](pion_production.md)), and inelastic scattering above $W=1.6$ GeV is `CCDIS` ([dis.md](dis.md)).
-- **FSI** is not simulated (see [fsi_none.md](fsi_none.md)).
+- **FSI** is applied by the cascade ([fsi_cascade.md](fsi_cascade.md)). The cascade uses a local density and local $k_F$, while this primary vertex uses the global RFG ($k_F$ = 0.221 GeV, $\epsilon_b$ = 25 MeV). The primary nucleon's kinetic energy is taken as its asymptotic energy $E^*$, so the two are consistent only on average.
 
 ---
 

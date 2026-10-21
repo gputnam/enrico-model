@@ -8,6 +8,7 @@
 #include "channel/CCMECChannel.h"
 #include "channel/CCRESChannel.h"
 #include "core/Config.h"
+#include "fsi/IntranuclearCascade.h"
 #include "fsi/TransparentNucleus.h"
 #include "initial_state/FreeNucleon.h"
 #include "initial_state/RelativisticFermiGas.h"
@@ -148,6 +149,20 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
 std::unique_ptr<FSIModel> MakeFSI(const YAML::Node& node) {
   const std::string type = Get<std::string>(node, "type", "none");
   if (type == "none") return std::make_unique<TransparentNucleus>();
+  if (type == "cascade") {
+    // Semi-classical intranuclear cascade for nucleons and pions (theory/fsi_cascade.md).
+    IntranuclearCascade::Options o;
+    o.step = Get<double>(node, "step", o.step);
+    o.nucleonRescattering = Get<bool>(node, "nucleon_rescattering", o.nucleonRescattering);
+    o.nnPionProduction = Get<bool>(node, "nn_pion_production", o.nnPionProduction);
+    o.pionQuasiElastic = Get<bool>(node, "pion_quasielastic", o.pionQuasiElastic);
+    o.pionAbsorption = Get<bool>(node, "pion_absorption", o.pionAbsorption);
+    o.likePairAbsorption = Get<double>(node, "like_pair_absorption", o.likePairAbsorption);
+    o.formationZone = Get<bool>(node, "formation_zone", o.formationZone);
+    o.formationMu2 = Get<double>(node, "formation_mu2", o.formationMu2);
+    if (node && node["formation_processes"]) o.formationProcesses = node["formation_processes"].as<std::vector<int>>();
+    return std::make_unique<IntranuclearCascade>(o);
+  }
   throw std::runtime_error("fsi: unknown type '" + type + "'");
 }
 

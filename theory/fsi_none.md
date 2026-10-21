@@ -18,3 +18,5 @@ The struck nucleon also leaves without paying any further energy cost. The remov
 - It reads the status-22 hadrons and their positions. Positions are not yet in the event record; a cascade will add a vertex position to `Particle`.
 - It transports them through the nuclear density of the remnant.
 - It appends the escaping particles with status 1, plus any intermediate particles with generator-specific statuses (≥ 24), declared in the NuHepMC header.
+
+**Superseded in the loop configuration** by the intranuclear cascade [fsi_cascade.md](fsi_cascade.md) (`fsi: {type: cascade}`), which implements the interface above: `Particle::x` positions, status-1 escaping hadrons, status-25 post-FSI remnant. `TransparentNucleus` remains available as `fsi: {type: none}` (no-FSI truth).

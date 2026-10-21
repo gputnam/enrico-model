@@ -279,9 +279,8 @@ DIS events have $\langle Q^2\rangle=2.65$ GeV² and $\langle W\rangle=2.62$ GeV;
   - no forward/backward charge correlations beyond the backward baryon;
   - $\langle p_T^2\rangle$ is a single model value.
 - **No Pauli blocking** of the outgoing nucleon: negligible at $W>1.6$ GeV.
-- **No FSI** (see [fsi_none.md](fsi_none.md)). The DIS hadrons leave the nucleus unchanged. The
-  pions from DIS can only reach the CC1π⁺ and QE-like samples through FSI or $W_\text{exp}$
-  smearing.
+- **FSI** is applied by the cascade ([fsi_cascade.md](fsi_cascade.md)). The DIS hadrons first travel
+  the SKAT formation length $|\vec p|/\mu^2$ ($\mu^2=0.08$ GeV²) before they can interact.
 - **Radiative corrections** are not included (Born level, as in [1]).
 
 ## References

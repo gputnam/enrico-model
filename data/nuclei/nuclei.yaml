@@ -9,13 +9,18 @@
 #     for N != Z (Ar, Fe, Pb) separate proton/neutron values are given whose average matches the
 #     symmetric-matter fit (e.g. Pb: (0.245+0.283)/2 ~ 0.265).
 #   He4: from the same systematics (light nucleus, kF ~ 0.17 is often used; treat with care).
+#   rch  : rms charge radius [fm], I. Angeli & K.P. Marinova, At. Data Nucl. Data Tables 99, 69 (2013).
+#          Used by the intranuclear cascade (fsi/NuclearDensity) to set the nucleon density profile.
+#   Sp/Sn: ground-state proton/neutron separation energies [GeV] from the AME2020 mass evaluation
+#          (W.J. Huang et al., Chin. Phys. C 45, 030002 (2021); M. Wang et al., ibid. 030003).
+#          They set the depth of the cascade's nucleon potential (theory/fsi_cascade.md).
 nuclei:
   - {name: n,     Z: 0,  A: 1,   mass: 0.93956542}   # free neutron (for tests / nucleon targets)
   - {name: H1,    Z: 1,  A: 1,   mass: 0.93827209}
-  - {name: He4,   Z: 2,  A: 4,   mass: 3.727379,   kF: 0.169, Eb: 0.0170}
-  - {name: C12,   Z: 6,  A: 12,  mass: 11.174863,  kF: 0.221, Eb: 0.0250}
-  - {name: O16,   Z: 8,  A: 16,  mass: 14.895081,  kF: 0.225, Eb: 0.0270}
-  - {name: Ar40,  Z: 18, A: 40,  mass: 37.215526,  kF_p: 0.242, kF_n: 0.259, Eb: 0.0295}
-  - {name: Ca40,  Z: 20, A: 40,  mass: 37.214698,  kF: 0.251, Eb: 0.0280}
-  - {name: Fe56,  Z: 26, A: 56,  mass: 52.089777,  kF_p: 0.251, kF_n: 0.263, Eb: 0.0360}
-  - {name: Pb208, Z: 82, A: 208, mass: 193.687123, kF_p: 0.245, kF_n: 0.283, Eb: 0.0440}
+  - {name: He4,   Z: 2,  A: 4,   mass: 3.727379,   kF: 0.169, Eb: 0.0170, rch: 1.6755, Sp: 0.019814, Sn: 0.020578}
+  - {name: C12,   Z: 6,  A: 12,  mass: 11.174863,  kF: 0.221, Eb: 0.0250, rch: 2.4702, Sp: 0.015957, Sn: 0.018722}
+  - {name: O16,   Z: 8,  A: 16,  mass: 14.895081,  kF: 0.225, Eb: 0.0270, rch: 2.6991, Sp: 0.012127, Sn: 0.015664}
+  - {name: Ar40,  Z: 18, A: 40,  mass: 37.215526,  kF_p: 0.242, kF_n: 0.259, Eb: 0.0295, rch: 3.4274, Sp: 0.012529, Sn: 0.009869}
+  - {name: Ca40,  Z: 20, A: 40,  mass: 37.214698,  kF: 0.251, Eb: 0.0280, rch: 3.4776, Sp: 0.008328, Sn: 0.015640}
+  - {name: Fe56,  Z: 26, A: 56,  mass: 52.089777,  kF_p: 0.251, kF_n: 0.263, Eb: 0.0360, rch: 3.7377, Sp: 0.010184, Sn: 0.011197}
+  - {name: Pb208, Z: 82, A: 208, mass: 193.687123, kF_p: 0.245, kF_n: 0.283, Eb: 0.0440, rch: 5.5012, Sp: 0.008004, Sn: 0.007368}

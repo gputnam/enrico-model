@@ -29,6 +29,9 @@ NuclearDatabase::NuclearDatabase() {
     nuc.kFermiProton = nuflow::Get<double>(n, "kF_p", kF);
     nuc.kFermiNeutron = nuflow::Get<double>(n, "kF_n", kF);
     nuc.removalEnergy = nuflow::Get<double>(n, "Eb", 0.0);
+    nuc.rmsChargeRadius = nuflow::Get<double>(n, "rch", 0.0);
+    nuc.separationProton = nuflow::Get<double>(n, "Sp", 0.0);
+    nuc.separationNeutron = nuflow::Get<double>(n, "Sn", 0.0);
     nuclei_.push_back(nuc);
   }
 }

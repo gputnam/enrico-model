@@ -80,14 +80,15 @@ void NuHepMCWriter::Begin(const RunInfo& info) {
   AddRunAttr<StringAttribute>(r, "NuHepMC.VertexStatusInfo[21].Name", "NucleonSeparationVertex");
   AddRunAttr<StringAttribute>(r, "NuHepMC.VertexStatusInfo[21].Description",
                               "Separation of the struck nucleon from the nuclear remnant");
-  AddRunAttr<VectorIntAttribute>(r, "NuHepMC.ParticleStatusIDs", std::vector<int>{1, 4, 20, 21, 22, 23});
+  AddRunAttr<VectorIntAttribute>(r, "NuHepMC.ParticleStatusIDs", std::vector<int>{1, 4, 20, 21, 22, 23, 25});
   const std::map<int, std::pair<std::string, std::string>> pstat = {
       {1, {"UndecayedPhysical", "Physical final-state particle"}},
       {4, {"IncomingBeam", "Incoming neutrino"}},
       {20, {"Target", "Target nucleus or free nucleon"}},
       {21, {"StruckNucleon", "Bound nucleon struck in the primary interaction"}},
       {22, {"PreFSIHadron", "Hadron leaving the primary vertex, before FSI"}},
-      {23, {"NuclearRemnantPreFSI", "Spectator nuclear remnant entering the FSI stage"}}};
+      {23, {"NuclearRemnantPreFSI", "Spectator nuclear remnant entering the FSI stage"}},
+      {25, {"NuclearRemnantPostFSI", "Excited nuclear remnant after the intranuclear cascade"}}};
   for (const auto& [id, nd] : pstat) {
     AddRunAttr<StringAttribute>(r, "NuHepMC.ParticleStatusInfo[" + std::to_string(id) + "].Name", nd.first);
     AddRunAttr<StringAttribute>(r, "NuHepMC.ParticleStatusInfo[" + std::to_string(id) + "].Description", nd.second);
@@ -129,10 +130,15 @@ void NuHepMCWriter::Write(const Event& ev) {
   auto vFSI = std::make_shared<GenVertex>();
   vFSI->set_status(2);
   GenVertexPtr vSep;
-  int iTarget = -1, iHit = -1, iRemnant = -1;
+  int iTarget = -1, iHit = -1, iRemnant = -1, iRemnantPost = -1;
   for (size_t i = 0; i < parts.size(); ++i) {
     const auto& p = parts[i];
-    if (p.status == kStatusRemnant) {
+    if (p.status == kStatusRemnantPostFSI) {
+      // remnant after the intranuclear cascade: the physical (status-1) remnant of the event
+      hp[i] = std::make_shared<GenParticle>(ToHepMC(p.p), kRemnantPdg, 1);
+      hp[i]->add_attribute("remnant_particle_number", std::make_shared<IntAttribute>(p.pdg));
+      iRemnantPost = static_cast<int>(i);
+    } else if (p.status == kStatusRemnant) {
       hp[i] = std::make_shared<GenParticle>(ToHepMC(p.p), kRemnantPdg, 1);
       hp[i]->add_attribute("remnant_particle_number", std::make_shared<IntAttribute>(p.pdg));
       iRemnant = static_cast<int>(i);
@@ -172,11 +178,12 @@ void NuHepMCWriter::Write(const Event& ev) {
   }
   if (bound) {
     // The remnant leaves the separation vertex and passes through the FSI summary vertex.
+    // With a cascade the outgoing remnant is the post-FSI one (it balances the FSI vertex).
     auto remnantIn = std::make_shared<GenParticle>(hp[iRemnant]->momentum(), kRemnantPdg, kStatusRemnant);
     remnantIn->set_generated_mass(parts[iRemnant].p.M());
     vSep->add_particle_out(remnantIn);
     vFSI->add_particle_in(remnantIn);
-    vFSI->add_particle_out(hp[iRemnant]);
+    vFSI->add_particle_out(hp[iRemnantPost >= 0 ? iRemnantPost : iRemnant]);
     g.add_vertex(vSep);
   }
   g.add_vertex(vPrimary);

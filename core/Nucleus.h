@@ -15,6 +15,9 @@ struct Nucleus {
   double kFermiProton = 0;  // Fermi momenta [GeV]
   double kFermiNeutron = 0;
   double removalEnergy = 0; // mean nucleon removal ("binding") energy for the global Fermi gas [GeV]
+  double rmsChargeRadius = 0;   // rms charge radius [fm] (sets the density profile used by the cascade)
+  double separationProton = 0;  // ground-state proton / neutron separation energies S_p, S_n [GeV]
+  double separationNeutron = 0;
 
   int N() const { return A - Z; }
   bool IsFreeNucleon() const { return A == 1; }

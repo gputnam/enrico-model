@@ -217,7 +217,7 @@ initial pair dominates, as in [1,8]). $q_3$ distribution of the 2p2h events: 8% 
 - **Isospin fraction.** The $np$:$nn$ mixture comes from the model's matrix elements (symmetric
   matter $N=Z$); for $N\neq Z$ nuclei the channel weights use $N$ (ν) or $Z$ (ν̄) with the species
   Fermi momentum, a simple extension of RS17.
-- **No FSI** of the outgoing nucleons ([fsi_none.md](fsi_none.md)).
+- **FSI** of the two nucleons is applied by the cascade ([fsi_cascade.md](fsi_cascade.md)); both start at the same density-weighted vertex.
 - **Only $\nu_\mu$/$\bar\nu_\mu$ CC**; NC 2p2h is not implemented.
 
 ## 5. Configuration

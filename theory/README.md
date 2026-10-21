@@ -10,6 +10,7 @@ Each physics component in `nuflow` has a note here describing the model, the equ
 | [dis.md](dis.md) | Stage 1 `CCDISChannel`, stage 3 `DISKinematics`, `BodekYang` (effective-LO structure functions), `GRV98LO`, `DISHadronization` |
 | [mec.md](mec.md) | Stage 1 `CCMECChannel`, stage 3 `MECKinematics`, `MECCurrent` (relativistic 2p2h MEC of Ruiz Simo *et al.*: seagull, pion-in-flight, pion-pole, Δ), `apps/nuflow-mec-response` |
 | [fsi_none.md](fsi_none.md) | Stage 4 `TransparentNucleus` |
+| [fsi_cascade.md](fsi_cascade.md) | Stage 4 `IntranuclearCascade` (nucleon + pion INC: local density, Cugnon NN, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone), `NuclearDensity`, `HadronNucleonXSec`, `apps/nuflow-fsi-validate` |
 
 ## Conventions
 
@@ -22,7 +23,7 @@ Each physics component in `nuflow` has a note here describing the model, the equ
   - $k$ and $k'$ are the neutrino and charged-lepton four-momenta; $p$ and $p'$ the initial and final nucleon four-momenta;
   - $q=k-k'$ and $Q^2=-q^2$.
 - **PDG codes:** particles and nuclei use PDG Monte Carlo codes (nuclei as `10LZZZAAAI`).
-- **Particle status codes:** 4 beam, 20 target, 21 struck nucleon, 22 hadron before FSI, 23 nuclear remnant, 1 final state.
+- **Particle status codes:** 4 beam, 20 target, 21 struck nucleon, 22 hadron before FSI, 23 nuclear remnant (before FSI), 25 nuclear remnant after the cascade, 1 final state.
 
 ## Data provenance
 

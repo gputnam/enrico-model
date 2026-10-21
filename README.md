@@ -7,7 +7,7 @@
 | 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCDISChannel`, `CCMECChannel` |
 | 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `FreeNucleon` |
 | 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`), `MECKinematics` (+ `MECCurrent`) |
-| 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI) |
+| 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI), `IntranuclearCascade` (+ `NuclearDensity`, `HadronNucleonXSec`) |
 
 The `orchestration/` layer does the rest:
 - builds the total-cross-section tables, caching them on disk;
@@ -17,7 +17,7 @@ The `orchestration/` layer does the rest:
 
 Shared types (four-vectors, RNG, event record, nuclei, configuration) live in `core/`, and the flux sources and readers in `flux/`.
 
-The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md).
+The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md). Final-state interactions are a semi-classical intranuclear cascade for nucleons and pions (local-density ¹²C, Cugnon NN cross sections, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone) in [`theory/fsi_cascade.md`](theory/fsi_cascade.md).
 
 ## Build
 
@@ -61,7 +61,7 @@ Runs are configured in YAML (see `config/`).
 | `beam.flux` | `{type: mono, energy: E}`, `{type: flat, emin, emax}`, or a histogram (see below) |
 | `target` | A list of `{pdg, count}` or the string `"1000060120:1,1000010010:1"` |
 | `channels` | A list of channels with their stage-2 and stage-3 configuration (see below) |
-| `fsi` | The stage-4 model |
+| `fsi` | The stage-4 model: `{type: none}` (transparent) or `{type: cascade, ...}` (see below) |
 | `xsec_table` | Energy nodes, MC samples per node, cache directory |
 
 Channel types:
@@ -79,6 +79,10 @@ Channel types:
   lambda_piNDelta: 1.15, mass: 1.232, gA: 1.26, f_pi: 0.093}`, `nucleon_form_factors` (F1V only), `proposal_q_scale`
   (default 1 GeV), `q3_max` (default 0 = no cut).
 
+FSI: `{type: cascade}` ([theory/fsi_cascade.md](theory/fsi_cascade.md)) options `step` (0.2 fm), `nucleon_rescattering`, `nn_pion_production`,
+`pion_quasielastic`, `pion_absorption` (all true), `like_pair_absorption` (0.05), `formation_zone` (true), `formation_mu2` (0.08 GeV²),
+`formation_processes` ([600]). Needs `rch`, `Sp`, `Sn` in `data/nuclei/nuclei.yaml`.
+
 A histogram flux is given as `{type: histogram, format: root|csv|minerva_le_txt|table, file, histogram, density: per_bin|per_GeV, scale, units, emin, emax}`.
 
 Flux formats that are supported:
@@ -90,7 +94,7 @@ Flux formats that are supported:
 ### Output
 
 The ROOT file contains:
-- **`events` TTree**, one entry per event. Event-level branches are `Enu`, `Q2`, `q0`, `q3`, `W`, `channel`, `target_pdg`, the struck nucleon (`hit_*`) and `weight`. The particle arrays are `pdg`, `status`, `mother`, `E`, `px`, `py` and `pz`.
+- **`events` TTree**, one entry per event. Event-level branches are `Enu`, `Q2`, `q0`, `q3`, `W`, `channel`, `target_pdg`, the struck nucleon (`hit_*`) and `weight`. The particle arrays are `pdg`, `status`, `mother`, `E`, `px`, `py` and `pz` (up to 256 particles).
 - **`run` TTree** with the flux-averaged cross section, trial and overweight counters, and the seed.
 - **σ(E) graphs** per channel and nucleus, the flux histogram, and the full configuration.
 
@@ -102,7 +106,8 @@ The particle status codes follow NuHepMC:
 | 20 | Target |
 | 21 | Struck nucleon |
 | 22 | Hadron before FSI |
-| 23 | Nuclear remnant |
+| 23 | Nuclear remnant (before FSI) |
+| 25 | Nuclear remnant after the cascade (excited; carries the balancing four-momentum) |
 | 1 | Final state |
 
 `--hepmc` additionally writes a NuHepMC v1.0 HepMC3 ASCII file.
@@ -127,9 +132,10 @@ channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, CCDISCh
 initial_state/   stage 2: NuclearModel, RelativisticFermiGas, FreeNucleon
 kinematics/      stage 3: KinematicsGenerator, QuasiElasticKinematics, FormFactors, QECurrent, ResonantPionKinematics,
                  PionProductionCurrent, DISKinematics, BodekYang, GRV98LO, DISHadronization, MECKinematics, MECCurrent
-fsi/             stage 4: FSIModel, TransparentNucleus
+fsi/             stage 4: FSIModel, TransparentNucleus, IntranuclearCascade, NuclearDensity, HadronNucleonXSec
 orchestration/   Generator, XSecTableBuilder, EnergySampler, ModelFactory, writers
-apps/            nuflow-gen, nuflow-xsec, nuflow-qe-table, nuflow-mec-response (2p2h response functions)
+apps/            nuflow-gen, nuflow-xsec, nuflow-qe-table, nuflow-mec-response (2p2h response functions),
+                 nuflow-fsi-validate (hadron-nucleus and event-level FSI validation)
 config/          example run configurations
 data/            flux files (with provenance READMEs), nuclear parameters, GRV98 LO PDF grid (data/pdf), xsec cache
 theory/          physics documentation per model

@@ -51,4 +51,9 @@ channels:
     mec: {C5A0: 1.00, MA: 0.93, C3V0: 2.13, MV: 0.84, f_star: 2.13, delta_propagator: real,
           lambda_piNN: 1.3, lambda_piNDelta: 1.15}
 
-fsi: {type: none}
+# Semi-classical intranuclear cascade (theory/fsi_cascade.md): vertex from the 12C HO point density,
+# local Fermi gas Pauli blocking, nucleon potential T_F(r) + S_N; free pp/np cross sections (Cugnon et al.
+# 1996) incl. NN -> N Delta; pions in the Delta-hole model with the Oset-Salcedo (1987) in-medium width
+# (QE, CX, 2- and 3-body absorption); SKAT formation length (mu^2 = 0.08 GeV^2) for DIS hadrons.
+# No parameter is tuned to the corpus.
+fsi: {type: cascade}
