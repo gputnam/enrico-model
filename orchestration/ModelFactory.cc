@@ -5,6 +5,7 @@
 
 #include "channel/CCQEChannel.h"
 #include "channel/CCDISChannel.h"
+#include "channel/CCMECChannel.h"
 #include "channel/CCRESChannel.h"
 #include "core/Config.h"
 #include "fsi/TransparentNucleus.h"
@@ -12,6 +13,7 @@
 #include "initial_state/RelativisticFermiGas.h"
 #include "kinematics/QuasiElasticKinematics.h"
 #include "kinematics/DISKinematics.h"
+#include "kinematics/MECKinematics.h"
 #include "kinematics/ResonantPionKinematics.h"
 
 namespace nuflow {
@@ -109,6 +111,32 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
       auto kin = std::make_shared<DISKinematics>(BodekYang(bp), DISHadronization(ho), o);
       out.push_back(std::make_shared<CCDISChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+    } else if (type == "CCMEC") {
+      // 2p2h meson-exchange currents, relativistic MEC of Ruiz Simo et al. (theory/mec.md).
+      MECParameters par;
+      const YAML::Node m = c["mec"];
+      par.C5A0 = Get<double>(m, "C5A0", par.C5A0);
+      par.MADelta = Get<double>(m, "MA", par.MADelta);
+      par.C3V0 = Get<double>(m, "C3V0", par.C3V0);
+      par.MV = Get<double>(m, "MV", par.MV);
+      par.fStar = Get<double>(m, "f_star", par.fStar);
+      par.MDelta = Get<double>(m, "mass", par.MDelta);
+      par.gA = Get<double>(m, "gA", par.gA);
+      par.fPi = Get<double>(m, "f_pi", par.fPi);
+      par.realDeltaPropagator = Get<std::string>(m, "delta_propagator", "real") == "real";
+      par.lambdaPiNN = Get<double>(m, "lambda_piNN", par.lambdaPiNN);
+      par.lambdaPiNDelta = Get<double>(m, "lambda_piNDelta", par.lambdaPiNDelta);
+      // Nucleon form factors (only the isovector Dirac F1V enters): HNV dipole/Galster by default.
+      YAML::Node nff = c["nucleon_form_factors"] ? YAML::Clone(c["nucleon_form_factors"]) : YAML::Node(YAML::NodeType::Map);
+      if (!nff["vector"]) nff["vector"] = "dipole";
+      if (!nff["axial"]) nff["axial"] = "dipole";
+      if (!nff["gA"]) nff["gA"] = par.gA;
+      if (!nff["MA"]) nff["MA"] = 1.05;
+      MECKinematics::Options o;
+      o.proposalQScale = Get<double>(c, "proposal_q_scale", o.proposalQScale);
+      o.q3Max = Get<double>(c, "q3_max", o.q3Max);
+      auto kin = std::make_shared<MECKinematics>(MECCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
+      out.push_back(std::make_shared<CCMECChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
     } else {
       throw std::runtime_error("channels: unknown type '" + type + "'");
     }

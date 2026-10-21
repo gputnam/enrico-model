@@ -237,7 +237,7 @@ Below $W\approx2$ GeV the charge constraint dominates (for $\nu p$, $n_\text{ch}
 The model is 3.5% below the world average at 40 GeV. Bodek–Yang obtain 0.673 for iron, but that
 includes their Fe/D nuclear correction, which adds about 3–5% at $0.05<x<0.3$ (anti-shadowing). The
 model is about 12% below at 4–8 GeV. Most of that gap is the missing inelastic strength at
-$W<1.6$ GeV beyond single-Δ pion production and the missing 2p2h (§6).
+$W<1.6$ GeV beyond single-Δ pion production (§6); 2p2h is now the separate `CCMEC` channel ([mec.md](mec.md)).
 
 **MINERvA ME flux on CH** (2M events), flux-averaged per nucleon, in $10^{-38}$ cm²:
 

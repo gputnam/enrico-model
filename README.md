@@ -4,9 +4,9 @@
 
 | Stage | Directory | Base class | Implementations (v0.1) |
 |---|---|---|---|
-| 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCDISChannel` |
+| 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCDISChannel`, `CCMECChannel` |
 | 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `FreeNucleon` |
-| 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`) |
+| 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`), `MECKinematics` (+ `MECCurrent`) |
 | 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI) |
 
 The `orchestration/` layer does the rest:
@@ -17,7 +17,7 @@ The `orchestration/` layer does the rest:
 
 Shared types (four-vectors, RNG, event record, nuclei, configuration) live in `core/`, and the flux sources and readers in `flux/`.
 
-The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md).
+The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md).
 
 ## Build
 
@@ -74,6 +74,10 @@ Channel types:
   must equal the CCRES `w_max`), `bodek_yang: {A: 0.621, B: 0.380, N: 1.026, axial: typeII|typeI, charm: true,
   du_correction: true}`, `hadronization: {dispersion_slope: 0.35, mean_pt2: 0.25, w_lps: 2.3}`, `proposal_q2_scale`.
   Needs the PDF grid `data/pdf/grv98lo.dat`.
+- `CCMEC` (2p2h meson-exchange currents, [theory/mec.md](theory/mec.md)): `nuclear_model`,
+  `mec: {C5A0: 1.00, MA: 0.93, C3V0: 2.13, MV: 0.84, f_star: 2.13, delta_propagator: real|full, lambda_piNN: 1.3,
+  lambda_piNDelta: 1.15, mass: 1.232, gA: 1.26, f_pi: 0.093}`, `nucleon_form_factors` (F1V only), `proposal_q_scale`
+  (default 1 GeV), `q3_max` (default 0 = no cut).
 
 A histogram flux is given as `{type: histogram, format: root|csv|minerva_le_txt|table, file, histogram, density: per_bin|per_GeV, scale, units, emin, emax}`.
 
@@ -119,13 +123,13 @@ $$\frac{d\sigma}{dX} = \texttt{flux\_avg\_xsec}\times\frac{N(X)}{N_\text{events}
 ```
 core/            event record, four-vectors, Dirac matrices, RNG, PDG helpers, nuclei, YAML config
 flux/            FluxSource, MonoEnergeticFlux, HistogramFlux, flux file readers
-channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, ChannelSelector (sigma tables)
+channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, CCDISChannel, CCMECChannel, ChannelSelector
 initial_state/   stage 2: NuclearModel, RelativisticFermiGas, FreeNucleon
 kinematics/      stage 3: KinematicsGenerator, QuasiElasticKinematics, FormFactors, QECurrent, ResonantPionKinematics,
-                 PionProductionCurrent, DISKinematics, BodekYang, GRV98LO, DISHadronization
+                 PionProductionCurrent, DISKinematics, BodekYang, GRV98LO, DISHadronization, MECKinematics, MECCurrent
 fsi/             stage 4: FSIModel, TransparentNucleus
 orchestration/   Generator, XSecTableBuilder, EnergySampler, ModelFactory, writers
-apps/            nuflow-gen, nuflow-xsec
+apps/            nuflow-gen, nuflow-xsec, nuflow-qe-table, nuflow-mec-response (2p2h response functions)
 config/          example run configurations
 data/            flux files (with provenance READMEs), nuclear parameters, GRV98 LO PDF grid (data/pdf), xsec cache
 theory/          physics documentation per model

@@ -33,9 +33,12 @@ add_library(nuflow SHARED
   kinematics/BodekYang.cc
   kinematics/DISHadronization.cc
   kinematics/DISKinematics.cc
+  kinematics/MECCurrent.cc
+  kinematics/MECKinematics.cc
   channel/CCQEChannel.cc
   channel/CCRESChannel.cc
   channel/CCDISChannel.cc
+  channel/CCMECChannel.cc
   channel/ChannelSelector.cc
   fsi/TransparentNucleus.cc
   orchestration/ModelFactory.cc
@@ -62,6 +65,8 @@ add_executable(nuflow-xsec apps/nuflow-xsec.cc)
 target_link_libraries(nuflow-xsec PRIVATE nuflow)
 add_executable(nuflow-qe-table apps/nuflow-qe-table.cc)
 target_link_libraries(nuflow-qe-table PRIVATE nuflow)
+add_executable(nuflow-mec-response apps/nuflow-mec-response.cc)
+target_link_libraries(nuflow-mec-response PRIVATE nuflow)
 
 if(NUFLOW_BUILD_TESTS)
   find_package(Catch2 3 REQUIRED)
@@ -74,6 +79,7 @@ if(NUFLOW_BUILD_TESTS)
     tests/test_generator.cc
     tests/test_pion_production.cc
     tests/test_dis.cc
+    tests/test_mec.cc
   )
   target_link_libraries(nuflow-tests PRIVATE nuflow Catch2::Catch2WithMain)
   include(Catch)

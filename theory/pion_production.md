@@ -159,6 +159,7 @@ The agreement is good up to 3 GeV. Above that the data include higher resonances
 - **No unitarization.** There is no Watson-theorem phase between the Δ and the background (Alvarez-Ruso *et al.* [5]). Fits with it give a larger $C_5^A(0)$.
 - **No in-medium Δ modification.** The Δ self-energy and width in the nucleus (Oset–Salcedo) and RPA are not included.
 - **No pion FSI.** With `TransparentNucleus`, the pions keep their primary kinematics. Absorption, charge exchange and rescattering would soften the $T_\pi$ spectrum and feed CC1π into the QE-like sample. This is the main known deficit; see [fsi_none.md](fsi_none.md).
+- **Δ in 2p2h.** The Δ-MEC of the `CCMEC` channel ([mec.md](mec.md)) uses the same N–Δ vertex ($C_5^A(0)=1.00$, $M_A^\Delta=0.93$ GeV) but only the real part of the Δ propagator, following Ruiz Simo *et al.*, to limit double counting with real pion emission here. The split between the two channels is model dependent.
 - **No coherent pion production.** Coherent production (process 100) is a separate channel.
 
 ## References

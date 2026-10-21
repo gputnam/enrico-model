@@ -42,5 +42,13 @@ channels:
   - type: CCDIS
     nuclear_model: {type: RFG}
     w_min: 1.6
+  # 2p2h (np -> pp, nn -> np) from relativistic meson-exchange currents (seagull, pion-in-flight,
+  # pion-pole, Delta forward/backward; vector + axial) in the RFG: Ruiz Simo et al., J. Phys. G 44,
+  # 065105 (2017) [arXiv:1604.08423], real part of the Delta propagator, De Pace et al. (2003) strong
+  # form factors; N-Delta axial vertex as CCRES. No q3 cutoff. theory/mec.md.
+  - type: CCMEC
+    nuclear_model: {type: RFG}
+    mec: {C5A0: 1.00, MA: 0.93, C3V0: 2.13, MV: 0.84, f_star: 2.13, delta_propagator: real,
+          lambda_piNN: 1.3, lambda_piNDelta: 1.15}
 
 fsi: {type: none}
