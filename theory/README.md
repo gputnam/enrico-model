@@ -10,14 +10,14 @@ Each physics component in `nuflow` has a note here describing the model, the equ
 
 ## Conventions
 
-- **Units:** natural units, $\hbar=c=1$. Energies and momenta in GeV; cross sections in $10^{-38}\,\text{cm}^2$.
+- **Units:** natural units, $`\hbar=c=1`$. Energies and momenta in GeV; cross sections in $`10^{-38}\,\text{cm}^2`$.
 - **Metric and Dirac algebra:**
-  - metric $g=\mathrm{diag}(+,-,-,-)$;
-  - $\gamma_5=i\gamma^0\gamma^1\gamma^2\gamma^3$;
-  - Levi-Civita symbol with $\epsilon^{0123}=-1$, used only in the derivations.
+  - metric $`g=\mathrm{diag}(+,-,-,-)`$;
+  - $`\gamma_5=i\gamma^0\gamma^1\gamma^2\gamma^3`$;
+  - Levi-Civita symbol with $`\epsilon^{0123}=-1`$, used only in the derivations.
 - **Kinematics:**
-  - $k$ and $k'$ are the neutrino and charged-lepton four-momenta; $p$ and $p'$ the initial and final nucleon four-momenta;
-  - $q=k-k'$ and $Q^2=-q^2$.
+  - $`k`$ and $`k'`$ are the neutrino and charged-lepton four-momenta; $`p`$ and $`p'`$ the initial and final nucleon four-momenta;
+  - $`q=k-k'`$ and $`Q^2=-q^2`$.
 - **PDG codes:** particles and nuclei use PDG Monte Carlo codes (nuclei as `10LZZZAAAI`).
 - **Particle status codes:** 4 beam, 20 target, 21 struck nucleon, 22 hadron before FSI, 23 nuclear remnant, 1 final state.
 

@@ -10,7 +10,7 @@
 - no nuclear optical potential;
 - no knock-out of extra nucleons.
 
-The struck nucleon also leaves without paying any further energy cost. The removal energy $\epsilon_b$ of the Fermi gas (see [quasielastic.md](quasielastic.md)) is accounted for in the remnant's excitation energy, so four-momentum is conserved exactly event by event.
+The struck nucleon also leaves without paying any further energy cost. The removal energy $`\epsilon_b`$ of the Fermi gas (see [quasielastic.md](quasielastic.md)) is accounted for in the remnant's excitation energy, so four-momentum is conserved exactly event by event.
 
 **Where it matters.** Real nuclei change the observed hadronic final states considerably. In carbon at GeV energies, for example, an outgoing proton reinteracts with probability of order 30–40%. Comparisons with data on hadron kinematics should therefore treat this model as a baseline (the "no-FSI" truth used for unfolding studies). The lepton kinematics are unaffected by FSI in the impulse approximation.
 
