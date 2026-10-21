@@ -110,6 +110,7 @@ long Generator::GenerateOne(Random& rng, Event& ev, long long* nOverweight, doub
     }
     if (rng.Uniform() * envelope < w) break;
   }
+  proc.channel->Finalize(proc.nucleus, ev, rng);
   ev.channel = proc.channel->ProcessId();
   ev.weight = 1.0;
   ev.totalXSec = selector_->TotalSigma(enu);

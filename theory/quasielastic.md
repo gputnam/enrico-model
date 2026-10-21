@@ -404,7 +404,7 @@ The panels show $E_\nu$ with $\Phi(E)\sigma(E)$ overlaid, $Q^2$, $p_\mu$, $\cos\
 - **Coulomb corrections** to the outgoing charged lepton are not included. They matter at low energy and for heavy nuclei.
 - **Off-shell ambiguity:** the de Forest prescription is one of several choices. The current is not conserved at order $\epsilon_b$, and the hadron-tensor contraction, Eq. (5), uses the average nucleon mass. Both are sub-percent effects at GeV energies.
 - **Second-class currents and isospin breaking** are neglected, with $G_E^V$ and $G_M^V$ from isospin symmetry.
-- **Multinucleon (2p2h/MEC)** is a separate channel, not yet implemented (`HitNucleonRequest` already supports two-nucleon initial states). Single-pion production in the Δ region is the separate `CCRES` channel ([pion_production.md](pion_production.md)).
+- **Multinucleon (2p2h/MEC)** is a separate channel, not yet implemented (`HitNucleonRequest` already supports two-nucleon initial states). Single-pion production in the Δ region is the separate `CCRES` channel ([pion_production.md](pion_production.md)), and inelastic scattering above $W=1.6$ GeV is `CCDIS` ([dis.md](dis.md)).
 - **FSI** is not simulated (see [fsi_none.md](fsi_none.md)).
 
 ---

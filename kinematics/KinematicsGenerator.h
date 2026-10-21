@@ -25,6 +25,11 @@ class KinematicsGenerator {
   // Fills `event.particles` with the primary-vertex particles and the event-level kinematic summary.
   virtual double Generate(int nuPdg, double enu, const Nucleus& nucleus, const InitialState& initial,
                           const NuclearModel& nuclearModel, Event& event, Random& rng) const = 0;
+
+  // Called once for each *accepted* event, before stage 4: completes the primary-vertex final state
+  // where that is independent of the weight (e.g. DIS hadronization). The default does nothing and
+  // consumes no random numbers.
+  virtual void Finalize(const Nucleus& nucleus, Event& event, Random& rng) const {}
 };
 
 }  // namespace nuflow

@@ -8,6 +8,10 @@ inline constexpr double kPi = 3.14159265358979323846;
 // Weak interaction (PDG 2024)
 inline constexpr double kGF = 1.1663788e-5;       // Fermi constant [GeV^-2]
 inline constexpr double kVud = 0.97367;           // |V_ud|
+inline constexpr double kVus = 0.22431;           // |V_us|
+inline constexpr double kVcd = 0.221;             // |V_cd|
+inline constexpr double kVcs = 0.975;             // |V_cs|
+inline constexpr double kMassW = 80.369;          // W boson mass [GeV]
 
 // Conversion: (hbar c)^2 = 0.3893794 GeV^2 mb  ->  1 GeV^-2 = 0.3893794e-27 cm^2
 inline constexpr double kGeV2ToCm2 = 0.38937937e-27;

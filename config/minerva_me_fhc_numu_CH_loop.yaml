@@ -36,5 +36,11 @@ channels:
     background: true
     nucleon_form_factors: {vector: dipole, axial: dipole, gA: 1.26, MA: 1.05}
     w_max: 1.6
+  # Inclusive shallow/deep-inelastic scattering above the CCRES region (W > 1.6 GeV): Bodek-Yang
+  # effective-LO structure functions (GRV98 LO, xi_w, K factors; arXiv:1011.6592 Table 2 + type II
+  # axial), hadronized into a nucleon + pions (bubble-chamber multiplicities). theory/dis.md.
+  - type: CCDIS
+    nuclear_model: {type: RFG}
+    w_min: 1.6
 
 fsi: {type: none}

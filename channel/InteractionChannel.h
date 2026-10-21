@@ -53,6 +53,9 @@ class InteractionChannel {
     return kinematics_->Generate(nuPdg, enu, nucleus, init, model, event, rng);
   }
 
+  // Completes an accepted event (see KinematicsGenerator::Finalize).
+  void Finalize(const Nucleus& nucleus, Event& event, Random& rng) const { kinematics_->Finalize(nucleus, event, rng); }
+
   // Human-readable summary of the physics configuration (also used to key the xsec cache).
   std::string Describe() const {
     return Name() + "{" + nuclearModel_->Name() + "," + kinematics_->Name() + "}";

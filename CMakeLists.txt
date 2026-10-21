@@ -29,8 +29,13 @@ add_library(nuflow SHARED
   kinematics/QuasiElasticKinematics.cc
   kinematics/PionProductionCurrent.cc
   kinematics/ResonantPionKinematics.cc
+  kinematics/GRV98LO.cc
+  kinematics/BodekYang.cc
+  kinematics/DISHadronization.cc
+  kinematics/DISKinematics.cc
   channel/CCQEChannel.cc
   channel/CCRESChannel.cc
+  channel/CCDISChannel.cc
   channel/ChannelSelector.cc
   fsi/TransparentNucleus.cc
   orchestration/ModelFactory.cc
@@ -68,6 +73,7 @@ if(NUFLOW_BUILD_TESTS)
     tests/test_flux.cc
     tests/test_generator.cc
     tests/test_pion_production.cc
+    tests/test_dis.cc
   )
   target_link_libraries(nuflow-tests PRIVATE nuflow Catch2::Catch2WithMain)
   include(Catch)

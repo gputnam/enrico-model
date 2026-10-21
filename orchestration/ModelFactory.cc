@@ -4,12 +4,14 @@
 #include <stdexcept>
 
 #include "channel/CCQEChannel.h"
+#include "channel/CCDISChannel.h"
 #include "channel/CCRESChannel.h"
 #include "core/Config.h"
 #include "fsi/TransparentNucleus.h"
 #include "initial_state/FreeNucleon.h"
 #include "initial_state/RelativisticFermiGas.h"
 #include "kinematics/QuasiElasticKinematics.h"
+#include "kinematics/DISKinematics.h"
 #include "kinematics/ResonantPionKinematics.h"
 
 namespace nuflow {
@@ -87,6 +89,26 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       auto kin = std::make_shared<ResonantPionKinematics>(
           PionProductionCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
       out.push_back(std::make_shared<CCRESChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+    } else if (type == "CCDIS") {
+      // Inclusive inelastic scattering above w_min: Bodek-Yang structure functions (theory/dis.md).
+      BodekYang::Parameters bp;
+      const YAML::Node b = c["bodek_yang"];
+      bp.A = Get<double>(b, "A", bp.A);
+      bp.B = Get<double>(b, "B", bp.B);
+      bp.N = Get<double>(b, "N", bp.N);
+      bp.axialTypeII = Get<std::string>(b, "axial", "typeII") == "typeII";
+      bp.charm = Get<bool>(b, "charm", bp.charm);
+      bp.duCorrection = Get<bool>(b, "du_correction", bp.duCorrection);
+      DISHadronization::Options ho;
+      const YAML::Node h = c["hadronization"];
+      ho.dispersionSlope = Get<double>(h, "dispersion_slope", ho.dispersionSlope);
+      ho.meanPt2 = Get<double>(h, "mean_pt2", ho.meanPt2);
+      ho.wLPS = Get<double>(h, "w_lps", ho.wLPS);
+      DISKinematics::Options o;
+      o.wMin = Get<double>(c, "w_min", o.wMin);
+      o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
+      auto kin = std::make_shared<DISKinematics>(BodekYang(bp), DISHadronization(ho), o);
+      out.push_back(std::make_shared<CCDISChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
     } else {
       throw std::runtime_error("channels: unknown type '" + type + "'");
     }
