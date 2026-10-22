@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <mutex>
 #include <numeric>
 
 #include "core/Constants.h"
@@ -64,7 +66,84 @@ double Mass(int code) {
   return pdg::PionMass(code);
 }
 
+int NumPions(const std::vector<int>& pdgs) {
+  int n = 0;
+  for (int c : pdgs)
+    if (c != pdg::kProton && c != pdg::kNeutron) ++n;
+  return n;
+}
+
 }  // namespace
+
+DISHadronization::DISHadronization(Options o) : opt_(o) { BuildSinglePionTable(); }
+
+void DISHadronization::BuildSinglePionTable() {
+  // P_1pi(W) by Monte Carlo with a fixed seed: 500 nodes in 1.07 < W < 6.06 GeV, 10000 draws per node
+  // (binomial error <= 0.005). Only the dispersion slope enters the species sampling, so tables are
+  // shared between instances with the same slope.
+  static std::mutex mutex;
+  static std::map<double, std::shared_ptr<const P1Table>> cache;
+  std::lock_guard<std::mutex> lock(mutex);
+  if (auto it = cache.find(opt_.dispersionSlope); it != cache.end()) {
+    p1_ = it->second;
+    return;
+  }
+  auto t = std::make_shared<P1Table>();
+  t->wLo = 1.07;
+  t->dW = 0.01;
+  t->n = 500;
+  constexpr int kDraws = 10000;
+  const int nus[2] = {14, -14};
+  const int hits[2] = {pdg::kProton, pdg::kNeutron};
+  std::vector<int> pdgs;
+  for (int a = 0; a < 2; ++a)
+    for (int b = 0; b < 2; ++b) {
+      auto& v = t->p[2 * a + b];
+      v.resize(t->n);
+      Random rng(0x5151A7ULL, 2 * a + b);
+      for (int i = 0; i < t->n; ++i) {
+        const double W = t->wLo + i * t->dW;
+        if (W <= kMassNeutron + kMassPionCharged) {
+          v[i] = 1;
+          continue;
+        }
+        int single = 0;
+        for (int k = 0; k < kDraws; ++k) {
+          SampleSpecies(nus[a], hits[b], W, rng, pdgs);
+          if (NumPions(pdgs) == 1) ++single;
+        }
+        v[i] = static_cast<double>(single) / kDraws;
+      }
+    }
+  p1_ = t;
+  cache[opt_.dispersionSlope] = t;
+}
+
+double DISHadronization::SinglePionFraction(int nuPdg, int hitPdg, double W) const {
+  const auto& v = p1_->p[2 * (nuPdg < 0 ? 1 : 0) + (hitPdg == pdg::kNeutron ? 1 : 0)];
+  const double u = (W - p1_->wLo) / p1_->dW;
+  if (u <= 0) return v.front();
+  if (u >= p1_->n - 1) return v.back();
+  const int i = static_cast<int>(u);
+  const double f = u - i;
+  return (1 - f) * v[i] + f * v[i + 1];
+}
+
+bool DISHadronization::SampleSpecies(int nuPdg, int hitPdg, double W, PionClass cls, Random& rng,
+                                     std::vector<int>& pdgs) const {
+  if (cls == PionClass::kAny) {
+    SampleSpecies(nuPdg, hitPdg, W, rng, pdgs);
+    return true;
+  }
+  const double mMin2pi = kMassProton + 2 * kMassPionNeutral;
+  if (cls == PionClass::kMulti && W <= mMin2pi + 1e-3) return false;
+  for (int attempt = 0; attempt < 20000; ++attempt) {
+    SampleSpecies(nuPdg, hitPdg, W, rng, pdgs);
+    const int n = NumPions(pdgs);
+    if ((cls == PionClass::kSingle) == (n == 1)) return true;
+  }
+  return false;
+}
 
 double DISHadronization::MeanChargedMultiplicity(int nuPdg, int hitPdg, double W) {
   // <n_ch> = a + b ln W^2, deuterium bubble chambers (see header).
@@ -267,14 +346,25 @@ bool DISHadronization::LongitudinalPhaseSpace(double W, const std::vector<double
 }
 
 void DISHadronization::Hadronize(int nuPdg, int hitPdg, const FourVector& X, const ThreeVector& axis, Random& rng,
-                                 std::vector<Hadron>& out) const {
+                                 std::vector<Hadron>& out, PionClass cls) const {
+  HadronizeImpl(nuPdg, hitPdg, X, axis, rng, out, cls, nullptr);
+}
+
+void DISHadronization::HadronizeSpecies(const std::vector<int>& species, const FourVector& X, const ThreeVector& axis,
+                                        Random& rng, std::vector<Hadron>& out) const {
+  HadronizeImpl(0, 0, X, axis, rng, out, PionClass::kAny, &species);
+}
+
+void DISHadronization::HadronizeImpl(int nuPdg, int hitPdg, const FourVector& X, const ThreeVector& axis, Random& rng,
+                                     std::vector<Hadron>& out, PionClass cls, const std::vector<int>* fixed) const {
   out.clear();
   const double W = X.M();
   std::vector<int> pdgs;
   std::vector<double> masses;
   std::vector<FourVector> p;
   for (int attempt = 0; attempt < 100; ++attempt) {
-    SampleSpecies(nuPdg, hitPdg, W, rng, pdgs);
+    if (fixed) pdgs = *fixed;
+    else if (!SampleSpecies(nuPdg, hitPdg, W, cls, rng, pdgs)) return;
     masses.clear();
     for (int c : pdgs) masses.push_back(Mass(c));
     const bool ok = (W < opt_.wLPS || pdgs.size() == 2) ? PhaseSpace(W, masses, rng, p)

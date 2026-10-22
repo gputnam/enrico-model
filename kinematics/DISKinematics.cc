@@ -27,8 +27,52 @@ double Kallen(double a, double b, double c) { return a * a + b * b + c * c - 2 *
 std::string DISKinematics::Name() const {
   std::ostringstream s;
   s.precision(6);
-  s << "CCDIS[" << sf_.Name() << ",Wmin=" << opt_.wMin << "]";
+  s << "CCDIS[" << sf_.Name() << ",Wmin=" << opt_.wMin;
+  if (opt_.wMax > 0) s << ",Wmax=" << opt_.wMax;
+  if (opt_.scaleI32 != 1.0 || opt_.scaleI12 != 1.0 || opt_.isospinDecomposition)
+    s << ",R1pi=" << opt_.scaleI32 << "/" << opt_.scaleI12 << (opt_.isospinDecomposition ? "iso" : "");
+  s << "]";
   return s.str();
+}
+
+bool DISKinematics::NeedsPartner(int nuPdg, int hitPdg) const {
+  const bool mixed = (nuPdg > 0) == (hitPdg == pdg::kNeutron);  // nu n or nubar p
+  return opt_.isospinDecomposition && mixed;
+}
+
+DISKinematics::SinglePionSplit DISKinematics::SinglePion(int nuPdg, int hitPdg, double W, double lwSelf,
+                                                         double lwPartner) const {
+  SinglePionSplit r;
+  if (!(lwSelf > 0)) return r;
+  const double sSelf = had_.SinglePionFraction(nuPdg, hitPdg, W) * lwSelf;
+  if (!opt_.isospinDecomposition) {
+    r.p1 = std::min(1.0, opt_.scaleI32 * sSelf / lwSelf);
+    return r;
+  }
+  if (!NeedsPartner(nuPdg, hitPdg)) {  // nu p, nubar n: pure I = 3/2
+    r.p1 = std::min(1.0, opt_.scaleI32 * sSelf / lwSelf);
+    return r;
+  }
+  // Mixed target. nu p -> p pi+ (amplitude A3) is pure I = 3/2; on the neutron the I = 3/2 part gives
+  // |A3|^2/9 in n pi+ and 2|A3|^2/9 in p pi0 (1/3 of the proton in total); the I = 1/2 remainder goes
+  // 2/3 to n pi+ and 1/3 to p pi0 (Clebsch-Gordan; I = 1/2 - 3/2 interference neglected). Same for nubar
+  // with p <-> n and pi+ -> pi-.
+  const int partnerPdg = hitPdg == pdg::kProton ? pdg::kNeutron : pdg::kProton;
+  const double sPartner = had_.SinglePionFraction(nuPdg, partnerPdg, W) * std::max(0.0, lwPartner);
+  const double s3 = std::min(sSelf, sPartner / 3), s1 = sSelf - s3;
+  const double t3 = opt_.scaleI32 * s3, t1 = opt_.scaleI12 * s1, tot = t3 + t1;
+  r.p1 = std::min(1.0, tot / lwSelf);
+  r.chargedShare = tot > 0 ? (t3 / 3 + 2 * t1 / 3) / tot : 1.0 / 3;
+  return r;
+}
+
+double DISKinematics::ContractFor(bool neutrino, bool proton, const FourVector& k, const FourVector& lepton,
+                                  const FourVector& pOn, double mIn, double W) const {
+  const FourVector q = k - lepton;
+  const double Q2 = -q.M2(), w2m2 = W * W - mIn * mIn + Q2;
+  if (!(Q2 > 0) || !(w2m2 > 0)) return 0;
+  const double xEff = Q2 / w2m2, nuEff = w2m2 / (2 * mIn);
+  return Contract(k, lepton, pOn, mIn, q, sf_.Compute(neutrino, proton, xEff, Q2, nuEff, mIn), neutrino ? +1 : -1);
 }
 
 double DISKinematics::Contract(const FourVector& k, const FourVector& kp, const FourVector& P, double M,
@@ -67,7 +111,7 @@ double DISKinematics::Generate(int nuPdg, double enu, const Nucleus& nucleus, co
   if (Ptot.e <= 0 || s <= 0) return 0;
   const double sqrtS = std::sqrt(s);
   const double wLo = std::max(opt_.wMin, kMassProton + kMassPionNeutral);
-  const double wHi = sqrtS - mLep;
+  const double wHi = opt_.wMax > 0 ? std::min(opt_.wMax, sqrtS - mLep) : sqrtS - mLep;
   if (wHi <= wLo) return 0;
 
   // --- W proposal: half flat in W, half flat in W^2.
@@ -162,7 +206,40 @@ void DISKinematics::Finalize(const Nucleus& nucleus, Event& event, Random& rng) 
   const FourVector X = k + pBound - lepton;
   const ThreeVector axis = (k - lepton).Vect();
   std::vector<DISHadronization::Hadron> hadrons;
-  had_.Hadronize(event.nuPdg, event.particles[2].pdg, X, axis, rng, hadrons);
+  // Pion-multiplicity class: single pion with probability sigma_1pi / sigma_BY (theory/dis.md section 3),
+  // otherwise two or more pions; within a class, the hadronization model's distribution.
+  using PC = DISHadronization::PionClass;
+  const int nuPdg = event.nuPdg, hitPdg = event.particles[2].pdg;
+  const bool nu = nuPdg > 0, proton = hitPdg == pdg::kProton;
+  const double W = X.M();
+  const bool decomposed = opt_.isospinDecomposition || opt_.scaleI32 != 1.0 || opt_.scaleI12 != 1.0;
+  PC cls = PC::kAny;
+  SinglePionSplit split;
+  if (decomposed) {
+    const HitNucleon& hit = event.initial.hit[0];
+    const double mIn = pdg::NucleonMass(hitPdg);
+    const FourVector pOn(hit.OnShellEnergy(mIn), hit.p);
+    const double lwSelf = ContractFor(nu, proton, k, lepton, pOn, mIn, W);
+    const double lwPartner = NeedsPartner(nuPdg, hitPdg) ? ContractFor(nu, !proton, k, lepton, pOn, mIn, W) : 0;
+    split = SinglePion(nuPdg, hitPdg, W, lwSelf, lwPartner);
+    cls = rng.Uniform() < split.p1 ? PC::kSingle : PC::kMulti;
+  }
+  if (cls == PC::kSingle && opt_.isospinDecomposition) {
+    std::vector<int> species;
+    if (!NeedsPartner(nuPdg, hitPdg)) {
+      species = nu ? std::vector<int>{pdg::kProton, pdg::kPiPlus} : std::vector<int>{pdg::kNeutron, pdg::kPiMinus};
+    } else {
+      const bool charged = rng.Uniform() < split.chargedShare;
+      if (nu) species = charged ? std::vector<int>{pdg::kNeutron, pdg::kPiPlus} : std::vector<int>{pdg::kProton, pdg::kPiZero};
+      else species = charged ? std::vector<int>{pdg::kProton, pdg::kPiMinus} : std::vector<int>{pdg::kNeutron, pdg::kPiZero};
+    }
+    had_.HadronizeSpecies(species, X, axis, rng, hadrons);
+  } else {
+    had_.Hadronize(nuPdg, hitPdg, X, axis, rng, hadrons, cls);
+  }
+  // Safety net: if the requested multiplicity class is closed (or not found), fall back to the
+  // unrestricted hadronization.
+  if (hadrons.empty() && cls != PC::kAny) had_.Hadronize(nuPdg, hitPdg, X, axis, rng, hadrons);
   if (hadrons.empty()) throw std::runtime_error("DISKinematics: hadronization failed");
   for (const auto& h : hadrons) event.Add(h.pdg, kStatusPreFSI, h.p, 2);
 }

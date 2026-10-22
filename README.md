@@ -4,7 +4,7 @@
 
 | Stage | Directory | Base class | Implementations (v0.1) |
 |---|---|---|---|
-| 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCDISChannel`, `CCMECChannel` |
+| 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCNStarChannel`, `CCDISChannel`, `CCMECChannel` |
 | 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `FreeNucleon` |
 | 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`), `MECKinematics` (+ `MECCurrent`) |
 | 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI), `IntranuclearCascade` (+ `NuclearDensity`, `HadronNucleonXSec`) |
@@ -17,7 +17,7 @@ The `orchestration/` layer does the rest:
 
 Shared types (four-vectors, RNG, event record, nuclei, configuration) live in `core/`, and the flux sources and readers in `flux/`.
 
-The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md). Final-state interactions are a semi-classical intranuclear cascade for nucleons and pions (local-density ¹²C, Cugnon NN cross sections, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone) in [`theory/fsi_cascade.md`](theory/fsi_cascade.md).
+The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), the second-resonance-region states $N(1440)$, $N(1520)$, $N(1535)$ (Lalakulich–Paschos–Piranishvili form factors, process id 401) in [`theory/nstar.md`](theory/nstar.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md). Final-state interactions are a semi-classical intranuclear cascade for nucleons and pions (local-density ¹²C, Cugnon NN cross sections, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone) in [`theory/fsi_cascade.md`](theory/fsi_cascade.md).
 
 ## Build
 
@@ -70,9 +70,14 @@ Channel types:
   `delta: {C5A0: 1.00, MA: 0.93, mass: 1.232, f_star: 2.14}`, `background: true|false`,
   `nucleon_form_factors` (background terms; default dipole/Galster, gA 1.26, MA 1.05), `w_max` (default 1.6 GeV),
   `proposal_q2_scale`, `proposal_bw_fraction`.
+- `CCNSTAR` (N(1440), N(1520), N(1535) for nu n / nubar p, [theory/nstar.md](theory/nstar.md), process id 401):
+  `nuclear_model`, `w_max` (default 1.6 GeV, = CCRES `w_max`), `MV` (0.84), `MA` (1.05),
+  `resonances` (default `[P11_1440, D13_1520, S11_1535]`), `proposal_q2_scale`.
 - `CCDIS` (inclusive inelastic above `w_min`, [theory/dis.md](theory/dis.md)): `nuclear_model`, `w_min` (default 1.6 GeV;
-  must equal the CCRES `w_max`), `bodek_yang: {A: 0.621, B: 0.380, N: 1.026, axial: typeII|typeI, charm: true,
-  du_correction: true}`, `hadronization: {dispersion_slope: 0.35, mean_pt2: 0.25, w_lps: 2.3}`, `proposal_q2_scale`.
+  must equal the CCRES `w_max`), `w_max` (default 0 = kinematic limit), `bodek_yang: {A: 0.621, B: 0.380, N: 1.026,
+  axial: typeII|typeI, charm: true, du_correction: true}`, `hadronization: {dispersion_slope: 0.35, mean_pt2: 0.25,
+  w_lps: 2.3}`, `single_pion: {scale_i32, scale_i12, isospin}` (isospin-decomposed rescaling of the single-pion final
+  states, inclusive unchanged; dis.md section 3.1; default none), `proposal_q2_scale`.
   Needs the PDF grid `data/pdf/grv98lo.dat`.
 - `CCMEC` (2p2h meson-exchange currents, [theory/mec.md](theory/mec.md)): `nuclear_model`,
   `mec: {C5A0: 1.00, MA: 0.93, C3V0: 2.13, MV: 0.84, f_star: 2.13, delta_propagator: real|full, lambda_piNN: 1.3,
@@ -128,7 +133,7 @@ $$\frac{d\sigma}{dX} = \texttt{flux\_avg\_xsec}\times\frac{N(X)}{N_\text{events}
 ```
 core/            event record, four-vectors, Dirac matrices, RNG, PDG helpers, nuclei, YAML config
 flux/            FluxSource, MonoEnergeticFlux, HistogramFlux, flux file readers
-channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, CCDISChannel, CCMECChannel, ChannelSelector
+channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, CCNStarChannel, CCDISChannel, CCMECChannel, ChannelSelector
 initial_state/   stage 2: NuclearModel, RelativisticFermiGas, FreeNucleon
 kinematics/      stage 3: KinematicsGenerator, QuasiElasticKinematics, FormFactors, QECurrent, ResonantPionKinematics,
                  PionProductionCurrent, DISKinematics, BodekYang, GRV98LO, DISHadronization, MECKinematics, MECCurrent

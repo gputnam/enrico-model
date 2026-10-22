@@ -7,6 +7,7 @@ Each physics component in `nuflow` has a note here describing the model, the equ
 | [framework.md](framework.md) | Staged sampling algorithm, cross-section tables, unweighting, normalization, reproducibility |
 | [quasielastic.md](quasielastic.md) | Stage 1 `CCQEChannel`, stage 2 `RelativisticFermiGas` / `FreeNucleon`, stage 3 `QuasiElasticKinematics`, `FormFactors`, `QECurrent` |
 | [pion_production.md](pion_production.md) | Stage 1 `CCRESChannel`, stage 3 `ResonantPionKinematics`, `PionProductionCurrent` (HNV Δ(1232) + chiral background), `core/Dirac.h` |
+| [nstar.md](nstar.md) | Stage 1 `CCNStarChannel`, stage 3 `NStarKinematics` (N(1440), N(1520), N(1535): Lalakulich–Paschos–Piranishvili form factors, energy-dependent Breit–Wigners, N π / N η / N π π decays) |
 | [dis.md](dis.md) | Stage 1 `CCDISChannel`, stage 3 `DISKinematics`, `BodekYang` (effective-LO structure functions), `GRV98LO`, `DISHadronization` |
 | [mec.md](mec.md) | Stage 1 `CCMECChannel`, stage 3 `MECKinematics`, `MECCurrent` (relativistic 2p2h MEC of Ruiz Simo *et al.*: seagull, pion-in-flight, pion-pole, Δ), `apps/nuflow-mec-response` |
 | [fsi_none.md](fsi_none.md) | Stage 4 `TransparentNucleus` |

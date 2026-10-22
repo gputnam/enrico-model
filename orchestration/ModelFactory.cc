@@ -1,5 +1,6 @@
 #include "orchestration/ModelFactory.h"
 
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 
@@ -7,6 +8,7 @@
 #include "channel/CCDISChannel.h"
 #include "channel/CCMECChannel.h"
 #include "channel/CCRESChannel.h"
+#include "channel/CCNStarChannel.h"
 #include "core/Config.h"
 #include "fsi/IntranuclearCascade.h"
 #include "fsi/TransparentNucleus.h"
@@ -15,6 +17,7 @@
 #include "kinematics/QuasiElasticKinematics.h"
 #include "kinematics/DISKinematics.h"
 #include "kinematics/MECKinematics.h"
+#include "kinematics/NStarKinematics.h"
 #include "kinematics/ResonantPionKinematics.h"
 
 namespace nuflow {
@@ -92,8 +95,22 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       auto kin = std::make_shared<ResonantPionKinematics>(
           PionProductionCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
       out.push_back(std::make_shared<CCRESChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+    } else if (type == "CCNSTAR") {
+      // I = 1/2 resonances of the second resonance region, N(1440) P11, N(1520) D13, N(1535) S11
+      // (Lalakulich-Paschos-Piranishvili 2006), W < w_max (= CCRES w_max). theory/nstar.md.
+      NStarKinematics::Options o;
+      o.wMax = Get<double>(c, "w_max", o.wMax);
+      o.MV = Get<double>(c, "MV", o.MV);
+      o.MA = Get<double>(c, "MA", o.MA);
+      o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
+      if (c["resonances"]) {
+        o.resonances.clear();
+        for (const auto& r : c["resonances"]) o.resonances.push_back(r.as<std::string>());
+      }
+      auto kin = std::make_shared<NStarKinematics>(o);
+      out.push_back(std::make_shared<CCNStarChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
     } else if (type == "CCDIS") {
-      // Inclusive inelastic scattering above w_min: Bodek-Yang structure functions (theory/dis.md).
+      // Inelastic continuum above w_min from the Bodek-Yang structure functions (theory/dis.md).
       BodekYang::Parameters bp;
       const YAML::Node b = c["bodek_yang"];
       bp.A = Get<double>(b, "A", bp.A);
@@ -109,7 +126,13 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       ho.wLPS = Get<double>(h, "w_lps", ho.wLPS);
       DISKinematics::Options o;
       o.wMin = Get<double>(c, "w_min", o.wMin);
+      o.wMax = Get<double>(c, "w_max", 0.0);
+      const YAML::Node sp = c["single_pion"];
+      o.scaleI32 = Get<double>(sp, "scale_i32", 1.0);
+      o.scaleI12 = Get<double>(sp, "scale_i12", 1.0);
+      o.isospinDecomposition = Get<bool>(sp, "isospin", false);
       o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
+      if (o.scaleI32 < 0 || o.scaleI12 < 0) throw std::runtime_error(type + ": single_pion scales must be >= 0");
       auto kin = std::make_shared<DISKinematics>(BodekYang(bp), DISHadronization(ho), o);
       out.push_back(std::make_shared<CCDISChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
     } else if (type == "CCMEC") {

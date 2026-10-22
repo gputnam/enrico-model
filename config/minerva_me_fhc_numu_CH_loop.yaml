@@ -36,12 +36,24 @@ channels:
     background: true
     nucleon_form_factors: {vector: dipole, axial: dipole, gA: 1.26, MA: 1.05}
     w_max: 1.6
+  # I = 1/2 resonances of the second resonance region (nu n -> l- R+): N(1440) P11, N(1520) D13,
+  # N(1535) S11 with the Lalakulich-Paschos-Piranishvili (PRD 74, 014009) vector form factors from
+  # electroproduction helicity amplitudes and PCAC axial couplings; incoherent Breit-Wigners, decays to
+  # N pi, N eta, N pi pi; W < 1.6 GeV. theory/nstar.md.
+  - type: CCNSTAR
+    nuclear_model: {type: RFG}
+    w_max: 1.6
   # Inclusive shallow/deep-inelastic scattering above the CCRES region (W > 1.6 GeV): Bodek-Yang
   # effective-LO structure functions (GRV98 LO, xi_w, K factors; arXiv:1011.6592 Table 2 + type II
   # axial), hadronized into a nucleon + pions (bubble-chamber multiplicities). theory/dis.md.
+  # Single-pion final states of the continuum: isospin-decomposed and scaled by R_3/2 = 0.28 +- 0.15,
+  # R_1/2 = 0.68 +- 0.11 from a fit to the ANL/BNL deuterium p pi+, n pi+, p pi0 cross sections
+  # (Wilkinson et al. 2014 reanalysis) with CCRES + CCNSTAR; the remaining strength goes to >= 2 pions
+  # (inclusive cross section unchanged). theory/dis.md section 3.
   - type: CCDIS
     nuclear_model: {type: RFG}
     w_min: 1.6
+    single_pion: {scale_i32: 0.28, scale_i12: 0.68, isospin: true}
   # 2p2h (np -> pp, nn -> np) from relativistic meson-exchange currents (seagull, pion-in-flight,
   # pion-pole, Delta forward/backward; vector + axial) in the RFG: Ruiz Simo et al., J. Phys. G 44,
   # 065105 (2017) [arXiv:1604.08423], real part of the Delta propagator, De Pace et al. (2003) strong

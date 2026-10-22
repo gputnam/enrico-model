@@ -10,6 +10,7 @@
 //    (rapidity plateau along the momentum transfer, Gaussian pT) above.
 // Strange and charmed hadrons are not produced. See theory/dis.md.
 
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -29,9 +30,11 @@ class DISHadronization {
     int pdg;
     FourVector p;
   };
+  // Pion-multiplicity class of the hadronic final state (theory/dis.md section 3).
+  enum class PionClass { kAny, kSingle, kMulti };
 
-  DISHadronization() = default;
-  explicit DISHadronization(Options o) : opt_(o) {}
+  DISHadronization() : DISHadronization(Options{}) {}
+  explicit DISHadronization(Options o);
 
   // <n_ch>(W) for a CC interaction of `nuPdg` on nucleon `hitPdg` (charged hadrons incl. protons).
   static double MeanChargedMultiplicity(int nuPdg, int hitPdg, double W);
@@ -39,11 +42,22 @@ class DISHadronization {
   // Decide the hadron species for a hadronic system of mass W (charge and baryon number of the
   // struck nucleon plus the W boson).
   void SampleSpecies(int nuPdg, int hitPdg, double W, Random& rng, std::vector<int>& pdgs) const;
+  // As SampleSpecies, restricted to one pion-multiplicity class (exactly one pion, or two or more):
+  // the unrestricted multiplicity distribution conditioned on the class (rejection). Returns false if
+  // the class is kinematically closed at this W (kMulti below M + 2 m_pi).
+  bool SampleSpecies(int nuPdg, int hitPdg, double W, PionClass cls, Random& rng, std::vector<int>& pdgs) const;
+
+  // Probability P_1pi(W) that SampleSpecies produces exactly one pion (nucleon + one pion), tabulated
+  // at construction by Monte Carlo with a fixed seed (statistical precision ~0.5%).
+  double SinglePionFraction(int nuPdg, int hitPdg, double W) const;
 
   // Full hadronization: species + kinematics. X is the hadronic four-momentum (lab frame) and `axis`
   // the direction of the momentum transfer (lab frame). Hadrons are returned in the lab frame.
   void Hadronize(int nuPdg, int hitPdg, const FourVector& X, const ThreeVector& axis, Random& rng,
-                 std::vector<Hadron>& out) const;
+                 std::vector<Hadron>& out, PionClass cls = PionClass::kAny) const;
+  // Kinematics only, for a given list of species (first entry: the baryon).
+  void HadronizeSpecies(const std::vector<int>& species, const FourVector& X, const ThreeVector& axis, Random& rng,
+                        std::vector<Hadron>& out) const;
 
   // Isotropic n-body phase-space decay of mass W at rest (unweighted). Returns false on failure.
   static bool PhaseSpace(double W, const std::vector<double>& masses, Random& rng, std::vector<FourVector>& p);
@@ -55,7 +69,16 @@ class DISHadronization {
   const Options& Opts() const { return opt_; }
 
  private:
+  struct P1Table {
+    double wLo, dW;
+    int n;
+    std::vector<double> p[4];  // index: 2*(nubar) + (neutron)
+  };
+  void BuildSinglePionTable();
+  void HadronizeImpl(int nuPdg, int hitPdg, const FourVector& X, const ThreeVector& axis, Random& rng,
+                     std::vector<Hadron>& out, PionClass cls, const std::vector<int>* fixed) const;
   Options opt_;
+  std::shared_ptr<const P1Table> p1_;
 };
 
 }  // namespace nuflow

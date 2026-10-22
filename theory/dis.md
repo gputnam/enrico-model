@@ -200,12 +200,34 @@ Hadrons are written with status 22 (mother = struck nucleon) and become status 1
 
 Below $W\approx2$ GeV the charge constraint dominates (for $\nu p$, $n_\text{ch}\ge2$), so the dispersion is smaller.
 
-## 3. Boundary with CCRES and process ids
+## 3. Boundary with CCRES/CCNSTAR, single-pion decomposition, process ids
 
-- CCRES (Δ region, HNV model) generates $W<1.6$ GeV; CCDIS generates $W\ge1.6$ GeV. Both use the same $W=\sqrt{(p_\text{bound}+q)^2}$, so there is neither a gap nor double counting.
-- The cut is sharp. Bodek–Yang describe the duality-averaged *inclusive* strength (all multiplicities, all resonances), whereas CCRES is single-pion Δ + background only. At 6 GeV on CH the per-nucleon $d\sigma/dW$ therefore steps up from 0.51–0.53 (CCRES, 1.5–1.6 GeV) to 1.66–1.72 (CCDIS, 1.6–1.7 GeV) $\times10^{-38}$ cm²/GeV.
-- The missing inelastic strength between 1.4 and 1.6 GeV (multi-pion, $N(1520)$, $N(1535)$, ...) is about 0.2–0.25 × 10⁻³⁸ cm²/nucleon at 6 GeV (§6).
-- `nuflow` writes NuHepMC process id 600 (CC DIS); the measurement bridge maps it to the DIS interaction type.
+- **Boundary.** CCRES (Δ region, HNV model) and CCNSTAR ($N(1440)$, $N(1520)$, $N(1535)$, [nstar.md](nstar.md)) generate $W<1.6$ GeV; CCDIS generates $W\ge1.6$ GeV. All use the same $W=\sqrt{(p_\text{bound}+q)^2}$, so there is neither a gap nor double counting in $W$.
+- **Remaining step.** At the boundary, $d\sigma/dW$ on CH (ME flux, per nucleon) goes from 1.07 (1.5–1.6 GeV) to 1.67 ×10⁻³⁸ cm²/GeV (1.6–1.7 GeV). Without CCNSTAR it went from 0.51–0.53 to 1.66–1.72 at 6 GeV.
+- **Process id.** `nuflow` writes NuHepMC process id 600 (CC DIS); the measurement bridge maps it to the DIS interaction type.
+
+### 3.1 Exclusive single-pion part of the continuum
+
+The hadronization of §2 gives a single-pion ($N\pi$) probability $P_{1\pi}(W)$. It is tabulated at construction by Monte Carlo with a fixed seed: 500 nodes in $1.07<W<6.06$ GeV, with a precision of about 0.5%. Its values are:
+- $\nu p$: 0.61 at 1.6 GeV, 0.47 at 2 GeV, 0.19 at 3 GeV;
+- $\nu n$: 0.77, 0.49 and 0.12.
+
+**Isospin decomposition.** $S(W)=P_{1\pi}\,L_{\mu\nu}W^{\mu\nu}$ is the single-pion strength the continuum implies at a given kinematic point.
+- With `single_pion: {isospin: true}`, it is split into isospin components. The pure-$I=3/2$ target ($\nu p$, $\bar\nu n$) has $S_{3/2}=S$.
+- On the mixed target ($\nu n$, $\bar\nu p$), $S_{3/2}=\min(S,S_\text{partner}/3)$, where $S_\text{partner}$ is the partner nucleon's single-pion strength at the same kinematics, and $S_{1/2}=S-S_{3/2}$. The $I=1/2$–$3/2$ interference is neglected.
+
+**Scaling and charge states.** Each component is scaled, $\sigma_{1\pi}=R_{3/2}S_{3/2}+R_{1/2}S_{1/2}$, and the Clebsch–Gordan coefficients fix the charge states:
+- $I=3/2$: $n\pi^+:p\pi^0=1:2$;
+- $I=1/2$: $n\pi^+:p\pi^0=2:1$;
+- $\nu p\to p\pi^+$ on the pure target.
+
+**Inclusive strength.** The event is single-pion with probability $\sigma_{1\pi}/(L_{\mu\nu}W^{\mu\nu})$, and otherwise has two or more pions, with the hadronization model's distribution restricted to that class. The weight, and hence the inclusive Bodek–Yang cross section, is unchanged: only the exclusive composition moves.
+
+**Fit of the scales.** $R_{3/2}$ and $R_{1/2}$ are fitted to the ANL/BNL deuterium $p\pi^+$, $n\pi^+$ and $p\pi^0$ cross sections without a W cut, at $E_\nu$ = 1.5–4.5 GeV. The fit model is CCRES + CCNSTAR + scaled CCDIS on free nucleons (details in [nstar.md](nstar.md) §4).
+- Result: $R_{3/2}=0.28\pm0.15$ and $R_{1/2}=0.68\pm0.11$, with $\chi^2=11.1/14$ (49.5 at $R=1$).
+- The KNO-type hadronization therefore overestimates the single-pion share just above the resonance region, by about 3.5× in $I=3/2$ ($\nu p\to p\pi^+$ at 4.5 GeV would otherwise be 1.28 against 0.995 ± 0.10 measured).
+- The loop configuration uses these values. Without `single_pion` the legacy behaviour holds: all multiplicities come from the hadronization, the $W$ dependence is unchanged, and the scales are 1.
+- **Not done:** a non-resonant multi-pion continuum below 1.6 GeV, i.e. Bodek–Yang times $1-P_{1\pi}$, which an interrupted earlier attempt tried. Near threshold the KNO $P_{1\pi}$ puts 30–40% of the strength into $N\pi\pi$, so $\nu p\to p\pi^+\pi^0$ comes out 3–10× above the ANL two-pion data (0.014 ± 0.005 at 1.1 GeV, 0.066 ± 0.025 at 1.7 GeV).
 
 ## 4. Validation (`tests/test_dis.cc`)
 
@@ -238,6 +260,8 @@ The model is 3.5% below the world average at 40 GeV. Bodek–Yang obtain 0.673 f
 includes their Fe/D nuclear correction, which adds about 3–5% at $0.05<x<0.3$ (anti-shadowing). The
 model is about 12% below at 4–8 GeV. Most of that gap is the missing inelastic strength at
 $W<1.6$ GeV beyond single-Δ pion production (§6); 2p2h is now the separate `CCMEC` channel ([mec.md](mec.md)).
+With `CCMEC` and the second-resonance-region channel `CCNSTAR` ([nstar.md](nstar.md)), the full loop
+configuration gives 0.667 (4.47 GeV) and 0.661 (6.50 GeV), 6–7% (≈1.4σ) below MINOS.
 
 **MINERvA ME flux on CH** (2M events), flux-averaged per nucleon, in $10^{-38}$ cm²:
 
@@ -258,16 +282,19 @@ DIS events have $\langle Q^2\rangle=2.65$ GeV² and $\langle W\rangle=2.62$ GeV;
   w_min: 1.6                    # must equal the CCRES w_max
   bodek_yang: {A: 0.621, B: 0.380, N: 1.026, axial: typeII, charm: true, du_correction: true}   # defaults
   hadronization: {dispersion_slope: 0.35, mean_pt2: 0.25, w_lps: 2.3}                           # defaults
+  single_pion: {scale_i32: 0.28, scale_i12: 0.68, isospin: true}   # section 3.1; default: none (all 1, no isospin split)
+  w_max: 0                      # optional upper W limit (0 = kinematic limit)
   proposal_q2_scale: 1.0
 ```
 
 ## 6. Limitations
 
-- **Resonance–DIS transition.** The sharp cut at $W=1.6$ GeV leaves out the inelastic strength
-  between 1.4 and 1.6 GeV that is not Δ single-pion production: about 6% of σ at 6 GeV. It also
-  leaves out multi-pion production below 1.4. A future step should add the Bodek–Yang strength
-  below $W_\text{min}$ minus its single-pion part (or explicit higher resonances), so that the
-  1π/2π multiplicity channels add up to the inclusive.
+- **Resonance–DIS transition.** The cut at $W=1.6$ GeV is still sharp:
+  - $d\sigma/dW$ steps up by about 1.6×;
+  - the mean π⁰ multiplicity jumps from 0.33 to 0.86;
+  - there is no non-resonant multi-pion production below 1.6 GeV (only the $N^*\to N\pi\pi$ decays of CCNSTAR).
+
+  The single-pion scales of §3.1 are constant in $W$ and carry the uncertainties of the fit; the $I=3/2$ scale is weakly constrained (±50%).
 - **No nuclear modification of the structure functions** (EMC, anti-shadowing, shadowing) beyond
   Fermi motion and binding in the kinematics. Bodek–Yang's charged-lepton $A/D$ ratios would add about
   +3–5% at $0.05<x<0.3$ and −10% at $x\approx0.6$. Applying them on top of explicit Fermi motion would
