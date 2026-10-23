@@ -31,7 +31,7 @@ Heavier nuclei use a two-parameter Fermi density with a = 0.52 fm and the same r
 - Pauli blocking of every outgoing nucleon;
 - the momenta of the Fermi-sea collision partners (uniform in the local Fermi sphere).
 
-**Vertex.** The primary vertex is drawn from $r^2\rho(r)$. All primary hadrons start there, including both 2p2h nucleons. The position is stored in the new `Particle::x` field (fm): the vertex for status 22, the exit point for status 1.
+**Vertex.** The primary vertex is taken from the stage-2 nuclear model when it provides one (`InitialState::hasPosition`: the CCQE spectral function and local Fermi gas, [spectral_function.md](spectral_function.md)); otherwise it is drawn from $r^2\rho(r)$. All primary hadrons start there, including both 2p2h nucleons. The position is stored in the new `Particle::x` field (fm): the vertex for status 22, the exit point for status 1.
 
 **Nucleon potential.** Nucleons move in a local well $V_N(r)=T_F(r)+S_N$, with $T_F=\sqrt{k_F^2+M^2}-M$ and the measured separation energies $S_p=15.96$ and $S_n=18.72$ MeV (AME2020).
 - The conserved quantity along a trajectory is the asymptotic kinetic energy $E^*=T_\text{in}(r)-V_N(r)$.
@@ -39,7 +39,7 @@ Heavier nuclei use a two-parameter Fermi density with a = 0.52 fm and the same r
 - A Fermi-sea nucleon knocked out at r therefore pays $V_N(r)-t\ge S_N$.
 - A nucleon whose $E^*\le0$ after a collision is captured by the remnant.
 
-**RFG / local-density inconsistency.** The primary vertex still uses the global RFG ($k_F=0.221$ GeV, $\epsilon_b=25$ MeV, [quasielastic.md](quasielastic.md)), and the primary nucleon's on-shell kinetic energy is taken as its $E^*$. Without collisions the cascade therefore reproduces the transparent result exactly.
+**RFG / local-density inconsistency.** For CCQE with `SF`/`LFG` (the loop default since step 17) the vertex, local Pauli blocking and the cascade share the density. The other channels' primary vertex still uses the global RFG ($k_F=0.221$ GeV, $\epsilon_b=25$ MeV, [quasielastic.md](quasielastic.md)), and the primary nucleon's on-shell kinetic energy is taken as its $E^*$. Without collisions the cascade therefore reproduces the transparent result exactly.
 - Mean removal energy of the well: $\langle V-t\rangle=\tfrac25T_F+S\approx 26$ MeV at $k_F=0.221$. This is close to $\epsilon_b$, but not identical.
 - Pauli blocking at the primary vertex uses the global $k_F$; the cascade uses the local one.
 
@@ -180,7 +180,7 @@ Hadrons from CCDIS (process 600) travel freely for $l=|\vec p|/\mu^2$ before the
 - Δ-peak pion absorption is about 2× below Ashery, and σ_reac is low for beam pions (see above). There is no s-wave πN term (b₀, b₁, Im B₀) and no Re Σ_Δ. The Oset coefficients are frozen below 85 MeV.
 - Free NN cross sections are used, with no in-medium reduction or NN correlations. The np angular distribution is symmetrised. NN inelasticity is single-Δ only.
 - Trajectories are straight lines with no refraction, and protons have no Coulomb barrier. The potential only enters through $E^*$; its momentum is absorbed by the remnant.
-- The RFG primary vertex and the local-density cascade are inconsistent (Sec. 1).
+- The RFG primary vertex of the non-QE channels and the local-density cascade are inconsistent (Sec. 1); CCQE with `SF`/`LFG` is consistent.
 - There is no de-excitation of the remnant: no evaporation nucleons and no γ's. The status-25 remnant keeps the excitation energy.
 - The formation zone applies to DIS only. Δ propagation in CCRES is neglected.
 - Only the ¹²C density (HO) has been validated.

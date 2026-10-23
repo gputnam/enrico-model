@@ -395,17 +395,15 @@ The panels show $E_\nu$ with $\Phi(E)\sigma(E)$ overlaid, $Q^2$, $p_\mu$, $\cos\
 
 ## 8. Limitations and planned extensions
 
-- **Nuclear model:**
-  - The global Fermi gas has no correlation between momentum and removal energy, and a sharp Fermi surface.
-  - Upgrades follow naturally from the `NuclearModel` interface:
-    - a **local Fermi gas** [10], with $k_F(r) = [3\pi^2\rho_{p,n}(r)]^{1/3}$ and a radial position that FSI also needs;
-    - **spectral functions** [6], with $P(\mathbf p, E)$ sampled jointly. Pauli blocking is then handled by a $k_F$ cut or by an optical potential.
-- **Long-range correlations:** RPA [10] suppresses the low-$Q^2$ region and is not included.
+- **Nuclear model:** the global Fermi gas has no correlation between momentum and removal energy and a sharp Fermi surface. Two upgrades now exist behind the `NuclearModel` interface:
+  - the 12C **spectral function** with SRC pairs ([spectral_function.md](spectral_function.md)), used by the loop configuration since step 17;
+  - the **local Fermi gas** [10] ([local_fermi_gas.md](local_fermi_gas.md)).
+- **Long-range correlations:** the Valencia RPA [10] is available as `rpa: true` ([local_fermi_gas.md](local_fermi_gas.md) §4); it is off by default.
 - **Coulomb corrections** to the outgoing charged lepton are not included. They matter at low energy and for heavy nuclei.
 - **Off-shell ambiguity:** the de Forest prescription is one of several choices. The current is not conserved at order $\epsilon_b$, and the hadron-tensor contraction, Eq. (5), uses the average nucleon mass. Both are sub-percent effects at GeV energies.
 - **Second-class currents and isospin breaking** are neglected, with $G_E^V$ and $G_M^V$ from isospin symmetry.
 - **Multinucleon (2p2h/MEC)** is the separate `CCMEC` channel ([mec.md](mec.md)), relativistic MEC in the same RFG; NN-correlation (1p1h–2p2h interference) terms are not included. Single-pion production in the Δ region is the separate `CCRES` channel ([pion_production.md](pion_production.md)), and inelastic scattering above $W=1.6$ GeV is `CCDIS` ([dis.md](dis.md)).
-- **FSI** is applied by the cascade ([fsi_cascade.md](fsi_cascade.md)). The cascade uses a local density and local $k_F$, while this primary vertex uses the global RFG ($k_F$ = 0.221 GeV, $\epsilon_b$ = 25 MeV). The primary nucleon's kinetic energy is taken as its asymptotic energy $E^*$, so the two are consistent only on average.
+- **FSI** is applied by the cascade ([fsi_cascade.md](fsi_cascade.md)). With `RFG` the cascade's local density and local $k_F$ and the vertex's global RFG ($k_F$ = 0.221 GeV, $\epsilon_b$ = 25 MeV) are consistent only on average. With `SF` or `LFG` the vertex position, local Pauli blocking and the cascade use the same density.
 
 ---
 
@@ -415,7 +413,8 @@ The panels show $E_\nu$ with $\Phi(E)\sigma(E)$ overlaid, $Q^2$, $p_\mu$, $\cos\
 channels:
   - type: CCQE
     nuclear_model:
-      type: RFG                 # relativistic Fermi gas (parameters from data/nuclei/nuclei.yaml)
+      type: RFG                 # relativistic Fermi gas (parameters from data/nuclei/nuclei.yaml);
+                                # SF: spectral_function.md, LFG: local_fermi_gas.md
       tail: none                # or: bodek_ritchie (fraction 6 (kF a/pi)^2, 1/k^4 up to 4 GeV)
       tail_fraction: 0.0        # generic 1/k^4 tail fraction (ignored with tail: bodek_ritchie)
       tail_cutoff: 0.5          # generic tail cutoff [GeV]
@@ -427,6 +426,7 @@ channels:
       zexp_a: [-2.30, 0.6, 3.8, -2.3]   # a1..a4, zexp only (F_A(0) > 0 convention)
       tcut: 0.1764              # 9 m_pi^2 [GeV^2], zexp only
       t0: -0.28                 # [GeV^2], zexp only
+    rpa: false                  # Valencia RPA (local_fermi_gas.md section 4)
     proposal_q2_scale: 0.6      # Lambda^2 of the angular proposal [GeV^2]; affects efficiency only
 ```
 

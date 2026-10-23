@@ -5,7 +5,7 @@
 | Stage | Directory | Base class | Implementations (v0.1) |
 |---|---|---|---|
 | 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCNStarChannel`, `CCDISChannel`, `CCMECChannel` |
-| 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `FreeNucleon` |
+| 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `LocalFermiGas`, `ShellModelSpectralFunction` (12C SF + SRC pairs), `FreeNucleon` |
 | 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`), `MECKinematics` (+ `MECCurrent`) |
 | 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI), `IntranuclearCascade` (+ `NuclearDensity`, `HadronNucleonXSec`) |
 
@@ -65,7 +65,7 @@ Runs are configured in YAML (see `config/`).
 | `xsec_table` | Energy nodes, MC samples per node, cache directory |
 
 Channel types:
-- `CCQE`: `nuclear_model`, `form_factors: {vector: BBBA05|dipole, axial: dipole|zexp, MA, gA, ...}`, `proposal_q2_scale`.
+- `CCQE`: `nuclear_model` (`RFG`, `LFG` ([theory/local_fermi_gas.md](theory/local_fermi_gas.md)), `SF` (12C spectral function with SRC partner emission, [theory/spectral_function.md](theory/spectral_function.md))), `form_factors: {vector: BBBA05|dipole, axial: dipole|zexp, MA, gA, ...}`, `rpa` (Valencia RPA, `true` or a parameter map; default off), `proposal_q2_scale`. `LFG`/`SF` are CCQE-only; the other channels use `RFG`.
 - `CCRES` (single pion, Δ region, [theory/pion_production.md](theory/pion_production.md)): `nuclear_model`,
   `delta: {C5A0: 1.00, MA: 0.93, mass: 1.232, f_star: 2.14}`, `background: true|false`,
   `nucleon_form_factors` (background terms; default dipole/Galster, gA 1.26, MA 1.05), `w_max` (default 1.6 GeV),
@@ -134,7 +134,7 @@ $$\frac{d\sigma}{dX} = \texttt{flux\_avg\_xsec}\times\frac{N(X)}{N_\text{events}
 core/            event record, four-vectors, Dirac matrices, RNG, PDG helpers, nuclei, YAML config
 flux/            FluxSource, MonoEnergeticFlux, HistogramFlux, flux file readers
 channel/         stage 1: InteractionChannel, CCQEChannel, CCRESChannel, CCNStarChannel, CCDISChannel, CCMECChannel, ChannelSelector
-initial_state/   stage 2: NuclearModel, RelativisticFermiGas, FreeNucleon
+initial_state/   stage 2: NuclearModel, RelativisticFermiGas, LocalFermiGas, ShellModelSpectralFunction, FreeNucleon
 kinematics/      stage 3: KinematicsGenerator, QuasiElasticKinematics, FormFactors, QECurrent, ResonantPionKinematics,
                  PionProductionCurrent, DISKinematics, BodekYang, GRV98LO, DISHadronization, MECKinematics, MECCurrent
 fsi/             stage 4: FSIModel, TransparentNucleus, IntranuclearCascade, NuclearDensity, HadronNucleonXSec

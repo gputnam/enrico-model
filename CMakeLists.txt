@@ -23,9 +23,12 @@ add_library(nuflow SHARED
   flux/FluxReaders.cc
   initial_state/NuclearModel.cc
   initial_state/RelativisticFermiGas.cc
+  initial_state/LocalFermiGas.cc
+  initial_state/ShellModelSpectralFunction.cc
   initial_state/FreeNucleon.cc
   kinematics/FormFactors.cc
   kinematics/QECurrent.cc
+  kinematics/ValenciaRPA.cc
   kinematics/QuasiElasticKinematics.cc
   kinematics/PionProductionCurrent.cc
   kinematics/NStarKinematics.cc
@@ -72,6 +75,8 @@ add_executable(nuflow-qe-table apps/nuflow-qe-table.cc)
 target_link_libraries(nuflow-qe-table PRIVATE nuflow)
 add_executable(nuflow-mec-response apps/nuflow-mec-response.cc)
 target_link_libraries(nuflow-mec-response PRIVATE nuflow)
+add_executable(nuflow-lfg-validate apps/nuflow-lfg-validate.cc)
+target_link_libraries(nuflow-lfg-validate PRIVATE nuflow)
 add_executable(nuflow-fsi-validate apps/nuflow-fsi-validate.cc)
 target_link_libraries(nuflow-fsi-validate PRIVATE nuflow)
 
@@ -89,6 +94,7 @@ if(NUFLOW_BUILD_TESTS)
     tests/test_mec.cc
     tests/test_cascade.cc
     tests/test_nstar.cc
+    tests/test_lfg.cc
   )
   target_link_libraries(nuflow-tests PRIVATE nuflow Catch2::Catch2WithMain)
   include(Catch)

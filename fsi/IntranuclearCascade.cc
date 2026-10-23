@@ -160,7 +160,9 @@ void IntranuclearCascade::Propagate(const Nucleus& nucleus, Event& event, Random
     return;
   }
   const NuclearDensity& density = DensityFor(nucleus);
-  const ThreeVector vertex = density.SamplePosition(rng);
+  // The primary vertex: from the stage-2 nuclear model if it has a radial dependence (local Fermi gas),
+  // otherwise sampled from the density.
+  const ThreeVector vertex = event.initial.hasPosition ? event.initial.position : density.SamplePosition(rng);
   const bool formation =
       opt_.formationZone && std::find(opt_.formationProcesses.begin(), opt_.formationProcesses.end(),
                                       event.channel) != opt_.formationProcesses.end();

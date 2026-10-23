@@ -93,6 +93,7 @@ class NucleonFormFactors {
       : vector_(std::move(vec)), axial_(std::move(ax)) {}
   WeakFormFactors Evaluate(double Q2) const;
   std::string Name() const { return vector_->Name() + "/" + axial_->Name(); }
+  const VectorFormFactorModel& Vector() const { return *vector_; }
 
   static NucleonFormFactors FromConfig(const YAML::Node& node);
 

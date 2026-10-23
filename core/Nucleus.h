@@ -18,6 +18,11 @@ struct Nucleus {
   double rmsChargeRadius = 0;   // rms charge radius [fm] (sets the density profile used by the cascade)
   double separationProton = 0;  // ground-state proton / neutron separation energies S_p, S_n [GeV]
   double separationNeutron = 0;
+  // Ground-state to ground-state Q values of the charged-current transitions [GeV] (nuclear masses):
+  // qValueNu = M(Z+1, A) - M(Z, A) (nu: n -> p), qValueNubar = M(Z-1, A) - M(Z, A) (nubar: p -> n).
+  // 0 = not given. Used by the local Fermi gas energy balance (theory/local_fermi_gas.md).
+  double qValueNu = 0;
+  double qValueNubar = 0;
 
   int N() const { return A - Z; }
   bool IsFreeNucleon() const { return A == 1; }

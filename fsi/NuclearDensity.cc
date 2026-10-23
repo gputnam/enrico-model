@@ -1,6 +1,8 @@
 #include "fsi/NuclearDensity.h"
 
 #include <cmath>
+#include <map>
+#include <memory>
 #include <stdexcept>
 
 #include "core/Constants.h"
@@ -54,6 +56,13 @@ NuclearDensity::NuclearDensity(const Nucleus& nucleus) : Z_(nucleus.Z), A_(nucle
     }
   }
   maxR2Rho_ *= 1.01;
+}
+
+const NuclearDensity& NuclearDensity::For(const Nucleus& nucleus) {
+  thread_local std::map<int, std::unique_ptr<NuclearDensity>> cache;
+  auto it = cache.find(nucleus.pdg);
+  if (it == cache.end()) it = cache.emplace(nucleus.pdg, std::make_unique<NuclearDensity>(nucleus)).first;
+  return *it->second;
 }
 
 double NuclearDensity::Shape(double r) const {

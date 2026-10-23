@@ -35,7 +35,11 @@ double QuasiElasticKinematics::Generate(int nuPdg, double enu, const Nucleus& nu
   // Two-body final state in the rest frame of k + p_bound (the bound nucleon is off shell).
   const FourVector k(enu, 0, 0, enu);
   const FourVector pBound = hit.Momentum();
-  const FourVector Ptot = k + pBound;
+  // Energy of the struck nucleon in the vertex kinematics: equal to pBound.e for the global Fermi gas;
+  // the local Fermi gas produces the outgoing nucleon on shell inside the nucleus (Q-value gap).
+  const double eVertex = nuclearModel.VertexEnergy(nucleus, initial, 0, finalPdg);
+  const FourVector pVertex(eVertex, hit.p);
+  const FourVector Ptot = k + pVertex;
   const double s = Ptot.M2();
   if (Ptot.e <= 0 || s <= (mLep + mOut) * (mLep + mOut)) return 0;
   const double sqrtS = std::sqrt(s);
@@ -70,7 +74,15 @@ double QuasiElasticKinematics::Generate(int nuPdg, double enu, const Nucleus& nu
   const FourVector lepton = FourVector(eLepStar, dir * pLepStar).Boosted(beta);
   const FourVector nucleonOut = Ptot - lepton;
 
-  if (nuclearModel.PauliBlocked(nucleus, finalPdg, nucleonOut.Vect())) return 0;
+  if (nuclearModel.PauliBlocked(nucleus, finalPdg, nucleonOut.Vect(), initial)) return 0;
+  // Asymptotic outgoing nucleon: it leaves the nuclear potential decelerated along its direction.
+  FourVector nucleonFinal = nucleonOut;
+  const double vOut = nuclearModel.OutgoingPotential(nucleus, initial, finalPdg);
+  if (vOut != 0) {
+    const double eAsym = nucleonOut.e - vOut;
+    if (eAsym <= mOut) return 0;  // bound final state (discrete transitions; not generated)
+    nucleonFinal = FourVector(eAsym, nucleonOut.Vect().Unit() * std::sqrt(eAsym * eAsym - mOut * mOut));
+  }
 
   // Hadronic vertex: de Forest's prescription uses the on-shell initial nucleon and q~ = p' - p_on.
   const double eOn = hit.OnShellEnergy(mIn);
@@ -81,7 +93,22 @@ double QuasiElasticKinematics::Generate(int nuPdg, double enu, const Nucleus& nu
 
   const WeakFormFactors ff = ff_.Evaluate(Q2Tilde);
   const double M = 0.5 * (mIn + mOut);
-  const double LH = ContractQE(k, lepton, pOn, nucleonOut, ff, M, helicity);
+  double LH;
+  // RPA renormalizes the mean-field particle-hole response; knock-out from a correlated pair (which
+  // emits the partner) is not a 1p1h excitation of the Fermi sea and is left uncorrected.
+  if (opt_.rpa && !initial.hasSpectator) {
+    const MediumPoint med = nuclearModel.Medium(nucleus, initial);
+    // The (non-relativistic) RPA of Nieves et al. is evaluated at the non-relativistic energy transfer of
+    // this particle-hole pair, nu = (|k+q|^2 - |k|^2) / 2M, for all of U_N, U_Delta, V_l and V_t: it lies
+    // inside the 1p1h support of the local Fermi sea for every Pauli-allowed pair of a Fermi gas, and is
+    // clamped into it otherwise (theory/spectral_function.md, Sec. 5).
+    const double nu = (nucleonOut.P2() - hit.p.Mag2()) / (2 * M);
+    const ValenciaRPA::Factors fac =
+        rpa_.Evaluate(nu, qTilde.P(), med.rho, med.rhoCentral > 0 ? med.rho / med.rhoCentral : 1.0);
+    LH = ValenciaRPA::Contract(k, lepton, pOn, nucleonOut, ff, M, helicity, fac);
+  } else {
+    LH = ContractQE(k, lepton, pOn, nucleonOut, ff, M, helicity);
+  }
   if (LH <= 0) return 0;
 
   // dsigma/dOmega* = <|M|^2> / (4 E_nu E_N) * |p*| / (16 pi^2 sqrt(s)),  <|M|^2> = G_F^2 Vud^2 LH / 4
@@ -105,8 +132,19 @@ double QuasiElasticKinematics::Generate(int nuPdg, double enu, const Nucleus& nu
   event.Add(nucleus.pdg, kStatusTarget, FourVector(nucleus.mass, 0, 0, 0));
   const int iHit = event.Add(hit.pdg, kStatusStruckNucleon, pBound, 1);
   event.Add(leptonPdg, kStatusFinal, lepton, 0);
-  event.Add(finalPdg, kStatusPreFSI, nucleonOut, iHit);
-  if (initial.remnantPdg != 0) event.Add(initial.remnantPdg, kStatusRemnant, initial.remnant, 1);
+  const int iOut = event.Add(finalPdg, kStatusPreFSI, nucleonFinal, iHit);
+  if (initial.hasPosition) parts[iOut].x = initial.position;
+  if (initial.hasSpectator) {  // correlated partner of the struck nucleon (spectral-function SRC pair)
+    const int iSp = event.Add(initial.spectator.pdg, kStatusPreFSI, initial.spectator.Momentum(), 1);
+    if (initial.hasPosition) parts[iSp].x = initial.position;
+  }
+  if (initial.remnantPdg != 0) {
+    // With an outgoing potential the remnant absorbs the momentum lost by the nucleon.
+    const FourVector rem =
+        vOut != 0 ? FourVector(nucleus.mass, 0, 0, 0) + k - lepton - nucleonFinal : initial.remnant;
+    event.initial.remnant = rem;
+    event.Add(initial.remnantPdg, kStatusRemnant, rem, 1);
+  }
   return weight;
 }
 

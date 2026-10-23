@@ -47,6 +47,14 @@ struct InitialState {
   HitNucleon hit[2];        // QE uses one nucleon, 2p2h will use two
   int remnantPdg = 0;
   FourVector remnant;       // remnant four-momentum = P_A - sum(hit)
+  // Interaction point relative to the nucleus centre [fm], set by nuclear models with a radial
+  // dependence (local Fermi gas); the cascade then starts from it instead of sampling its own.
+  bool hasPosition = false;
+  ThreeVector position;
+  // Correlated spectator emitted together with the hit nucleon (short-range-correlated pair of a
+  // spectral function): on shell, it leaves the vertex as a hadron before FSI.
+  bool hasSpectator = false;
+  HitNucleon spectator;
 };
 
 struct Event {

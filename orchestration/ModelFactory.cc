@@ -13,7 +13,9 @@
 #include "fsi/IntranuclearCascade.h"
 #include "fsi/TransparentNucleus.h"
 #include "initial_state/FreeNucleon.h"
+#include "initial_state/LocalFermiGas.h"
 #include "initial_state/RelativisticFermiGas.h"
+#include "initial_state/ShellModelSpectralFunction.h"
 #include "kinematics/QuasiElasticKinematics.h"
 #include "kinematics/DISKinematics.h"
 #include "kinematics/MECKinematics.h"
@@ -57,7 +59,36 @@ std::shared_ptr<const NuclearModel> MakeNuclearModel(const YAML::Node& node) {
     o.tailCutoff = Get<double>(node, "tail_cutoff", 0.5);
     return std::make_shared<RelativisticFermiGas>(o);
   }
+  if (type == "SF") {
+    ShellModelSpectralFunction::Parameters p;
+    p.mfFraction = Get<double>(node, "mf_fraction", p.mfFraction);
+    p.e1s = Get<double>(node, "e1s", p.e1s);
+    p.e1p = Get<double>(node, "e1p", p.e1p);
+    p.widthA = Get<double>(node, "width_a", p.widthA);
+    p.widthB = Get<double>(node, "width_b", p.widthB);
+    p.eMax = Get<double>(node, "e_max", p.eMax);
+    p.kSRC = Get<double>(node, "k_src", p.kSRC);
+    p.kMax = Get<double>(node, "k_max", p.kMax);
+    p.sigmaCM = Get<double>(node, "sigma_cm", p.sigmaCM);
+    p.npFraction = Get<double>(node, "np_fraction", p.npFraction);
+    p.emitPartner = Get<bool>(node, "emit_partner", p.emitPartner);
+    return std::make_shared<ShellModelSpectralFunction>(p);
+  }
+  if (type == "LFG") {
+    const std::string e = Get<std::string>(node, "energy", "in_medium");
+    if (e != "in_medium" && e != "asymptotic") throw std::runtime_error("LFG: energy must be in_medium or asymptotic");
+    return std::make_shared<LocalFermiGas>(e == "in_medium" ? LocalFermiGas::EnergyBalance::kInMedium
+                                                            : LocalFermiGas::EnergyBalance::kAsymptotic);
+  }
   throw std::runtime_error("nuclear_model: unknown type '" + type + "'");
+}
+
+// Channels whose kinematics use the global-Fermi-gas energy convention only (the LFG energy balance and
+// local Pauli blocking are implemented for CCQE; theory/local_fermi_gas.md).
+std::shared_ptr<const NuclearModel> MakeGlobalNuclearModel(const YAML::Node& node, const std::string& channel) {
+  const std::string t = Get<std::string>(node, "type", "RFG");
+  if (t == "LFG" || t == "SF") throw std::runtime_error(channel + ": nuclear_model " + t + " is only implemented for CCQE");
+  return MakeNuclearModel(node);
 }
 
 }  // namespace
@@ -70,6 +101,29 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
     if (type == "CCQE") {
       QuasiElasticKinematics::Options o;
       o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
+      // Valencia RPA (theory/local_fermi_gas.md): `rpa: true` or a map of parameters.
+      const YAML::Node r = c["rpa"];
+      if (r && r.IsScalar()) o.rpa = r.as<bool>();
+      if (r && r.IsMap()) {
+        o.rpa = Get<bool>(r, "enabled", true);
+        auto& p = o.rpaParameters;
+        p.gPrime = Get<double>(r, "g_prime", p.gPrime);
+        p.f2Over4Pi = Get<double>(r, "f2_over_4pi", p.f2Over4Pi);
+        p.lambdaPi = Get<double>(r, "lambda_pi", p.lambdaPi);
+        p.cRho = Get<double>(r, "c_rho", p.cRho);
+        p.lambdaRho = Get<double>(r, "lambda_rho", p.lambdaRho);
+        p.mRho = Get<double>(r, "m_rho", p.mRho);
+        p.fStarOverF = Get<double>(r, "f_star_over_f", p.fStarOverF);
+        p.mDelta = Get<double>(r, "m_delta", p.mDelta);
+        p.gammaDelta = Get<double>(r, "gamma_delta", p.gammaDelta);
+        p.gammaPH = Get<double>(r, "gamma_ph", p.gammaPH);
+        p.c0 = Get<double>(r, "c0", p.c0);
+        p.f0pIn = Get<double>(r, "f0p_in", p.f0pIn);
+        p.f0pEx = Get<double>(r, "f0p_ex", p.f0pEx);
+        p.delta = Get<bool>(r, "delta_hole", p.delta);
+        p.qFull = Get<double>(r, "q_full", p.qFull);
+        p.qZero = Get<double>(r, "q_zero", p.qZero);
+      }
       auto kin = std::make_shared<QuasiElasticKinematics>(NucleonFormFactors::FromConfig(c["form_factors"]), o);
       out.push_back(std::make_shared<CCQEChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
     } else if (type == "CCRES") {
@@ -94,7 +148,7 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       o.bwFraction = Get<double>(c, "proposal_bw_fraction", o.bwFraction);
       auto kin = std::make_shared<ResonantPionKinematics>(
           PionProductionCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
-      out.push_back(std::make_shared<CCRESChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+      out.push_back(std::make_shared<CCRESChannel>(MakeGlobalNuclearModel(c["nuclear_model"], type), freeNucleon, kin));
     } else if (type == "CCNSTAR") {
       // I = 1/2 resonances of the second resonance region, N(1440) P11, N(1520) D13, N(1535) S11
       // (Lalakulich-Paschos-Piranishvili 2006), W < w_max (= CCRES w_max). theory/nstar.md.
@@ -108,7 +162,7 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
         for (const auto& r : c["resonances"]) o.resonances.push_back(r.as<std::string>());
       }
       auto kin = std::make_shared<NStarKinematics>(o);
-      out.push_back(std::make_shared<CCNStarChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+      out.push_back(std::make_shared<CCNStarChannel>(MakeGlobalNuclearModel(c["nuclear_model"], type), freeNucleon, kin));
     } else if (type == "CCDIS") {
       // Inelastic continuum above w_min from the Bodek-Yang structure functions (theory/dis.md).
       BodekYang::Parameters bp;
@@ -134,7 +188,7 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       o.proposalQ2Scale = Get<double>(c, "proposal_q2_scale", o.proposalQ2Scale);
       if (o.scaleI32 < 0 || o.scaleI12 < 0) throw std::runtime_error(type + ": single_pion scales must be >= 0");
       auto kin = std::make_shared<DISKinematics>(BodekYang(bp), DISHadronization(ho), o);
-      out.push_back(std::make_shared<CCDISChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+      out.push_back(std::make_shared<CCDISChannel>(MakeGlobalNuclearModel(c["nuclear_model"], type), freeNucleon, kin));
     } else if (type == "CCMEC") {
       // 2p2h meson-exchange currents, relativistic MEC of Ruiz Simo et al. (theory/mec.md).
       MECParameters par;
@@ -160,7 +214,7 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       o.proposalQScale = Get<double>(c, "proposal_q_scale", o.proposalQScale);
       o.q3Max = Get<double>(c, "q3_max", o.q3Max);
       auto kin = std::make_shared<MECKinematics>(MECCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
-      out.push_back(std::make_shared<CCMECChannel>(MakeNuclearModel(c["nuclear_model"]), freeNucleon, kin));
+      out.push_back(std::make_shared<CCMECChannel>(MakeGlobalNuclearModel(c["nuclear_model"], type), freeNucleon, kin));
     } else {
       throw std::runtime_error("channels: unknown type '" + type + "'");
     }

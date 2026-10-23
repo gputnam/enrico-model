@@ -213,7 +213,9 @@ initial pair dominates, as in [1,8]). $q_3$ distribution of the 2p2h events: 8% 
 - **Only MEC.** NN-correlation (one-body current with correlated pairs) and correlation–MEC
   interference terms of Valencia-type models are not included; SuSAv2 also has only MEC.
 - **Nuclear model.** Global RFG ($k_F=0.221$ GeV, $E_b=25$ MeV per hole) for holes and Pauli blocking;
-  no LFG, no spectral function, no short-range-correlation pair momentum.
+  no LFG, no spectral function, no short-range-correlation pair momentum. RS17 is formulated in the RFG,
+  so this channel keeps it even though CCQE now uses the 12C spectral function
+  ([spectral_function.md](spectral_function.md)); the 1p1h and 2p2h ground states therefore differ.
 - **Isospin fraction.** The $np$:$nn$ mixture comes from the model's matrix elements (symmetric
   matter $N=Z$); for $N\neq Z$ nuclei the channel weights use $N$ (ν) or $Z$ (ν̄) with the species
   Fermi momentum, a simple extension of RS17.

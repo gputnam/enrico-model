@@ -18,6 +18,8 @@ namespace nuflow {
 class NuclearDensity {
  public:
   explicit NuclearDensity(const Nucleus& nucleus);
+  // Thread-local cache of the density of each nucleus (shared by the local Fermi gas and the cascade).
+  static const NuclearDensity& For(const Nucleus& nucleus);
 
   double Rho(double r) const;                       // total nucleon density [fm^-3]
   double RhoSpecies(int nucleonPdg, double r) const;  // proton or neutron density [fm^-3]
