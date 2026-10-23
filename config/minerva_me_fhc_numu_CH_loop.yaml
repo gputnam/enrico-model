@@ -71,15 +71,16 @@ channels:
 
   # CC coherent pion production on 12C, nu A -> mu- pi+ A(g.s.) (process 100): Berger-Sehgal PCAC model
   # (PRD 79, 053003 (2009)) with the Adler/Kopeliovich-Marage lepton-mass (pion-pole) correction,
-  # f_pi = 130.7 MeV, m_A = 0.95 GeV; pi-12C elastic dsigma/dt from the BS09 fit to the pion-carbon data
-  # below T_pi = 0.87 GeV, Rein-Sehgal hadronic model with PDG pi N cross sections above 1.7 GeV, linear
-  # in between. The pion is not passed through the cascade (absorption is in the elastic amplitude).
+  # f_pi = 130.7 MeV, m_A = 0.95 GeV. pi-12C elastic dsigma/dt: BS09 fit to the pion-carbon data below
+  # T_pi = 0.87 GeV; above, a Glauber multiple-scattering amplitude (12C HO density from electron scattering,
+  # PDG isoscalar pi N sigma_tot/sigma_el incl. the N* region, Regge-analyticity Re/Im), blended over
+  # 0.87-0.97 GeV. The pion is not passed through the cascade (absorption is in the elastic amplitude).
   # Not applied to hydrogen. theory/coherent_pion.md.
   - type: CCCOH
     f_pi: 0.1307
     mA: 0.95
     lepton_mass_correction: true
-    elastic: {R0: 1.057, table_max_T: 0.87, rs_min_T: 1.7}
+    elastic: {model: glauber, table_max_T: 0.87, blend_width: 0.1}
 
 # Semi-classical intranuclear cascade (theory/fsi_cascade.md): vertex from the 12C HO point density,
 # local Fermi gas Pauli blocking, nucleon potential T_F(r) + S_N; free pp/np cross sections (Cugnon et al.

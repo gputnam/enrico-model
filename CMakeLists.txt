@@ -41,6 +41,7 @@ add_library(nuflow SHARED
   kinematics/MECCurrent.cc
   kinematics/MECKinematics.cc
   kinematics/CoherentPionKinematics.cc
+  kinematics/GlauberPionNucleus.cc
   channel/CCQEChannel.cc
   channel/CCRESChannel.cc
   channel/CCDISChannel.cc

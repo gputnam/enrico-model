@@ -12,7 +12,7 @@ Each physics component in `nuflow` has a note here describing the model, the equ
 | [nstar.md](nstar.md) | Stage 1 `CCNStarChannel`, stage 3 `NStarKinematics` (N(1440), N(1520), N(1535): Lalakulich–Paschos–Piranishvili form factors, energy-dependent Breit–Wigners, N π / N η / N π π decays) |
 | [dis.md](dis.md) | Stage 1 `CCDISChannel`, stage 3 `DISKinematics`, `BodekYang` (effective-LO structure functions), `GRV98LO`, `DISHadronization` |
 | [mec.md](mec.md) | Stage 1 `CCMECChannel`, stage 3 `MECKinematics`, `MECCurrent` (relativistic 2p2h MEC of Ruiz Simo *et al.*: seagull, pion-in-flight, pion-pole, Δ), `apps/nuflow-mec-response` |
-| [coherent_pion.md](coherent_pion.md) | Stage 1 `CCCOHChannel`, stage 2 `GroundStateNucleus`, stage 3 `CoherentPionKinematics` + `PionNucleusElastic` (Berger–Sehgal PCAC coherent π± with the lepton-mass correction, π–¹²C elastic data + Rein–Sehgal hadronic model, process id 100) |
+| [coherent_pion.md](coherent_pion.md) | Stage 1 `CCCOHChannel`, stage 2 `GroundStateNucleus`, stage 3 `CoherentPionKinematics` + `PionNucleusElastic` (Berger–Sehgal PCAC coherent π± with the lepton-mass correction, π–¹²C elastic data + Glauber π–A amplitude (`GlauberPionNucleus`), process id 100) |
 | [fsi_none.md](fsi_none.md) | Stage 4 `TransparentNucleus` |
 | [fsi_cascade.md](fsi_cascade.md) | Stage 4 `IntranuclearCascade` (nucleon + pion INC: local density, Cugnon NN, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone), `NuclearDensity`, `HadronNucleonXSec`, `apps/nuflow-fsi-validate` |
 

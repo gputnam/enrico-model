@@ -105,12 +105,30 @@ void PionNucleusElastic::Coefficients(double T, int A, double& A1, double& b1) c
 
 double PionNucleusElastic::DSigmaDt(double T, double absT, int A) const {
   double A1, b1;
+  if (UsesGlauber() && T > p_.tableMaxT) {
+    const double w = p_.blendWidth > 0 ? std::min(1.0, (T - p_.tableMaxT) / p_.blendWidth) : 1.0;
+    const double g = glauber_.DSigmaDt(T, absT, A);
+    if (w >= 1) return g;
+    Coefficients(p_.tableMaxT, A, A1, b1);
+    return (1 - w) * A1 * std::exp(-b1 * absT) + w * g;
+  }
   Coefficients(T, A, A1, b1);
   return A1 * std::exp(-b1 * absT);
 }
 
 double PionNucleusElastic::Sigma(double T, int A) const {
   double A1, b1;
+  if (UsesGlauber() && T > p_.tableMaxT) {
+    // integrate dsigma/dt (non-exponential) on a fine grid in q = sqrt|t|: dt = 2 q dq
+    constexpr int n = 4000;
+    const double qmax = 0.99, dq = qmax / n;
+    double s = 0;
+    for (int i = 0; i <= n; ++i) {
+      const double q = i * dq;
+      s += (i == 0 || i == n ? 0.5 : 1.0) * DSigmaDt(T, q * q, A) * 2 * q * dq;
+    }
+    return s;
+  }
   Coefficients(T, A, A1, b1);
   return A1 / b1;
 }
@@ -118,9 +136,12 @@ double PionNucleusElastic::Sigma(double T, int A) const {
 std::string CoherentPionKinematics::Name() const {
   std::ostringstream s;
   s.precision(6);
-  s << "CCCOH[BS09,fpi=" << opt_.fPi << ",mA=" << opt_.mA << ",lepmass=" << opt_.leptonMassCorrection
-    << ",R0=" << elastic_.Params().R0 << ",T=" << elastic_.Params().tableMaxT << "-" << elastic_.Params().rsMinT
-    << ",slope=" << opt_.proposalSlope << "]";
+  s << "CCCOH[BS09,fpi=" << opt_.fPi << ",mA=" << opt_.mA << ",lepmass=" << opt_.leptonMassCorrection;
+  if (elastic_.UsesGlauber())
+    s << ",piA=glauber,T=" << elastic_.Params().tableMaxT << "+" << elastic_.Params().blendWidth;
+  else
+    s << ",R0=" << elastic_.Params().R0 << ",T=" << elastic_.Params().tableMaxT << "-" << elastic_.Params().rsMinT;
+  s << ",slope=" << opt_.proposalSlope << "]";
   return s.str();
 }
 

@@ -18,7 +18,7 @@ namespace {
 constexpr uint64_t kCacheMagic = 0x6e75666c6f777831ULL;  // "nuflowx1"
 // Bump whenever physics code changes the trial weights for an unchanged configuration, so that
 // stale cached tables are never reused.
-constexpr int kCacheVersion = 2;
+constexpr int kCacheVersion = 3;
 
 std::string CacheKey(int nuPdg, const Process& p, const XSecTableOptions& opt) {
   std::ostringstream s;

@@ -70,6 +70,41 @@ TEST_CASE("pi-12C elastic input of the coherent model", "[coherent]") {
   CHECK(el.Sigma(0.3, 40) / el.Sigma(0.3, 12) == Approx(std::pow(40.0 / 12, 2.0 / 3)).epsilon(1e-9));
 }
 
+TEST_CASE("Glauber pi-12C elastic amplitude", "[coherent]") {
+  GlauberPionNucleus g;
+  // PDG isoscalar pi N inputs: N* region above the Regge fit, Regge-like at high p; rho < 0 below ~50 GeV
+  const auto r1 = GlauberPionNucleus::PiNAmplitude(1.4), r10 = GlauberPionNucleus::PiNAmplitude(10.0);
+  CHECK(r1.sigmaTot == Approx(36.8).margin(1.0));
+  CHECK(r1.sigmaTot > PionNucleusElastic::PiNTotal(1.4 - 0.13957) + 4);
+  CHECK(r10.sigmaTot == Approx(25.8).margin(0.5));
+  CHECK(r10.rho < 0);
+  CHECK(r10.beta == Approx(7.3).margin(0.5));
+  // high energy: sigma_tot(pi- C) = 234.1 +- 3.5 mb at 591 GeV/c (SELEX, hep-ex/9910052); 244.9 +- 14 mb at
+  // 175 GeV/c (Schiz et al., PRD 21, 3010); NA61 pi+ C production 171.6 +- 4.6 mb at 60 GeV/c
+  const auto o175 = g.Compute(174.9, 12), o60 = g.Compute(59.9, 12);
+  CHECK(o175.sigmaTot == Approx(234).margin(10));
+  CHECK(o60.sigmaProd == Approx(171.6).margin(10));
+  CHECK(o175.sigmaEl == Approx(41).margin(3));
+  // matches the BS09 12C data fit at T = 0.87 GeV (sigma_el = 82.6 mb, b1 = 62.2 GeV^-2) within 3%
+  const double d0 = g.DSigmaDtDirect(0.87, 0.0, 12), d2 = g.DSigmaDtDirect(0.87, 0.02, 12);
+  CHECK(std::log(d0 / d2) / 0.02 == Approx(62.2).epsilon(0.03));
+  PionNucleusElastic el;
+  CHECK(el.Sigma(0.8701, 12) == Approx(5140 / 62.2).epsilon(0.03));
+  CHECK(el.Sigma(1.0, 12) == Approx(85.8).epsilon(0.03));
+  // table interpolation reproduces the direct evaluation
+  for (double T : {0.93, 2.7, 13.0})
+    for (double t : {0.0, 0.01, 0.05}) CHECK(g.DSigmaDt(T, t, 12) == Approx(g.DSigmaDtDirect(T, t, 12)).epsilon(0.005));
+  // continuity of the data -> Glauber blend at T = 0.87
+  CHECK(el.DSigmaDt(0.87 + 1e-7, 0.01, 12) == Approx(el.DSigmaDt(0.87, 0.01, 12)).epsilon(1e-4));
+  // rein_sehgal mode keeps the v7 behaviour
+  PionNucleusElastic::Parameters rp;
+  rp.model = "rein_sehgal";
+  PionNucleusElastic rs(rp);
+  double A1, b1;
+  rs.ReinSehgal(10.0, 12, A1, b1);
+  CHECK(rs.DSigmaDt(10.0, 0.01, 12) == Approx(A1 * std::exp(-b1 * 0.01)));
+}
+
 TEST_CASE("coherent lepton-mass (pion-pole) factor", "[coherent]") {
   CoherentPionKinematics kin(PionNucleusElastic{}, CoherentPionKinematics::Options{});
   CoherentPionKinematics::Options o;

@@ -6,7 +6,7 @@
 |---|---|---|---|
 | 1. Channel and target selection | `channel/` | `InteractionChannel` (+ `ChannelSelector`) | `CCQEChannel`, `CCRESChannel`, `CCNStarChannel`, `CCDISChannel`, `CCMECChannel`, `CCCOHChannel` |
 | 2. Initial-state nuclear sampling | `initial_state/` | `NuclearModel` | `RelativisticFermiGas`, `LocalFermiGas`, `ShellModelSpectralFunction` (12C SF + SRC pairs), `FreeNucleon`, `GroundStateNucleus` (coherent) |
-| 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`), `MECKinematics` (+ `MECCurrent`), `CoherentPionKinematics` (+ `PionNucleusElastic`) |
+| 3. Kinematics generation | `kinematics/` | `KinematicsGenerator` | `QuasiElasticKinematics` (+ `FormFactors`), `ResonantPionKinematics` (+ `PionProductionCurrent`), `DISKinematics` (+ `BodekYang`, `GRV98LO`, `DISHadronization`), `MECKinematics` (+ `MECCurrent`), `CoherentPionKinematics` (+ `PionNucleusElastic`, `GlauberPionNucleus`) |
 | 4. Final-state interactions | `fsi/` | `FSIModel` | `TransparentNucleus` (no FSI), `IntranuclearCascade` (+ `NuclearDensity`, `HadronNucleonXSec`) |
 
 The `orchestration/` layer does the rest:
@@ -17,7 +17,7 @@ The `orchestration/` layer does the rest:
 
 Shared types (four-vectors, RNG, event record, nuclei, configuration) live in `core/`, and the flux sources and readers in `flux/`.
 
-The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), the second-resonance-region states $N(1440)$, $N(1520)$, $N(1535)$ (Lalakulich–Paschos–Piranishvili form factors, process id 401) in [`theory/nstar.md`](theory/nstar.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md), and charged-current coherent pion production on nuclei (Berger–Sehgal PCAC model with the lepton-mass correction and π–¹²C elastic data, process id 100) in [`theory/coherent_pion.md`](theory/coherent_pion.md). Final-state interactions are a semi-classical intranuclear cascade for nucleons and pions (local-density ¹²C, Cugnon NN cross sections, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone) in [`theory/fsi_cascade.md`](theory/fsi_cascade.md).
+The physics behind each component is written up in [`theory/`](theory/README.md). The quasi-elastic model is described in [`theory/quasielastic.md`](theory/quasielastic.md), single-pion production in the Δ(1232) region (Hernández–Nieves–Valverde Δ + chiral background, process id 400) in [`theory/pion_production.md`](theory/pion_production.md), the second-resonance-region states $N(1440)$, $N(1520)$, $N(1535)$ (Lalakulich–Paschos–Piranishvili form factors, process id 401) in [`theory/nstar.md`](theory/nstar.md), and inclusive shallow/deep-inelastic scattering above $W=1.6$ GeV (Bodek–Yang effective-LO structure functions on GRV98 LO, hadronized into a nucleon and pions, process id 600) in [`theory/dis.md`](theory/dis.md), and 2p2h excitations by relativistic meson-exchange currents (Ruiz Simo *et al.* 2017, two nucleons out, process id 300) in [`theory/mec.md`](theory/mec.md), and charged-current coherent pion production on nuclei (Berger–Sehgal PCAC model with the lepton-mass correction, π–¹²C elastic data and a Glauber π–A amplitude, process id 100) in [`theory/coherent_pion.md`](theory/coherent_pion.md). Final-state interactions are a semi-classical intranuclear cascade for nucleons and pions (local-density ¹²C, Cugnon NN cross sections, Oset–Salcedo Δ-hole pion absorption, SKAT formation zone) in [`theory/fsi_cascade.md`](theory/fsi_cascade.md).
 
 ## Build
 
@@ -85,8 +85,9 @@ Channel types:
   (default 1 GeV), `q3_max` (default 0 = no cut).
 - `CCCOH` (CC coherent pi+- on nuclei, A >= 4, [theory/coherent_pion.md](theory/coherent_pion.md), process id 100; no
   `nuclear_model`): `f_pi` (0.1307), `mA` (0.95), `lepton_mass_correction` (true),
-  `elastic: {R0: 1.057, table_max_T: 0.87, rs_min_T: 1.7}` (pi-12C data below `table_max_T`, Rein-Sehgal hadronic
-  model above `rs_min_T`), `proposal_slope` (0.8). The pion is written as a final-state particle (not cascaded) and the
+  `elastic: {model: glauber, table_max_T: 0.87, blend_width: 0.1}` (pi-12C data below `table_max_T`, Glauber pi-A
+  amplitude above, linear blend over `blend_width`; `model: rein_sehgal` restores the v7 Rein-Sehgal optical model above
+  `rs_min_T` (1.7) with `R0` (1.057)), `proposal_slope` (0.8). The pion is written as a final-state particle (not cascaded) and the
   recoiling ground-state nucleus as the remnant.
 
 FSI: `{type: cascade}` ([theory/fsi_cascade.md](theory/fsi_cascade.md)) options `step` (0.2 fm), `nucleon_rescattering`, `nn_pion_production`,
@@ -144,7 +145,7 @@ initial_state/   stage 2: NuclearModel, RelativisticFermiGas, LocalFermiGas, She
                  GroundStateNucleus
 kinematics/      stage 3: KinematicsGenerator, QuasiElasticKinematics, FormFactors, QECurrent, ResonantPionKinematics,
                  PionProductionCurrent, DISKinematics, BodekYang, GRV98LO, DISHadronization, MECKinematics, MECCurrent,
-                 CoherentPionKinematics (+ PionNucleusElastic)
+                 CoherentPionKinematics (+ PionNucleusElastic, GlauberPionNucleus)
 fsi/             stage 4: FSIModel, TransparentNucleus, IntranuclearCascade, NuclearDensity, HadronNucleonXSec
 orchestration/   Generator, XSecTableBuilder, EnergySampler, ModelFactory, writers
 apps/            nuflow-gen, nuflow-xsec, nuflow-qe-table, nuflow-mec-response (2p2h response functions),

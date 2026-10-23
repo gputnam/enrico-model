@@ -224,6 +224,10 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       // stays in its ground state.
       PionNucleusElastic::Parameters ep;
       const YAML::Node e = c["elastic"];
+      ep.model = Get<std::string>(e, "model", ep.model);
+      if (ep.model != "glauber" && ep.model != "rein_sehgal")
+        throw std::runtime_error(type + ": elastic.model must be glauber or rein_sehgal");
+      ep.blendWidth = Get<double>(e, "blend_width", ep.blendWidth);
       ep.R0 = Get<double>(e, "R0", ep.R0);
       ep.tableMaxT = Get<double>(e, "table_max_T", ep.tableMaxT);
       ep.rsMinT = Get<double>(e, "rs_min_T", ep.rsMinT);
