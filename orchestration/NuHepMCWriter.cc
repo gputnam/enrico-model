@@ -149,7 +149,10 @@ void NuHepMCWriter::Write(const Event& ev) {
     if (p.status == kStatusTarget) iTarget = static_cast<int>(i);
     if (p.status == kStatusStruckNucleon) iHit = static_cast<int>(i);
   }
-  const bool bound = iRemnant >= 0;
+  // Bound-nucleon events: target -> struck nucleon + remnant at the separation vertex. Coherent events
+  // (no struck nucleon) have the whole recoiling nucleus as the remnant, an output of the primary vertex.
+  const bool bound = iRemnant >= 0 && iHit >= 0;
+  if (iRemnant >= 0 && iHit < 0) vPrimary->add_particle_out(hp[iRemnantPost >= 0 ? iRemnantPost : iRemnant]);
   if (bound) {
     vSep = std::make_shared<GenVertex>();
     vSep->set_status(21);

@@ -26,6 +26,7 @@ add_library(nuflow SHARED
   initial_state/LocalFermiGas.cc
   initial_state/ShellModelSpectralFunction.cc
   initial_state/FreeNucleon.cc
+  initial_state/GroundStateNucleus.cc
   kinematics/FormFactors.cc
   kinematics/QECurrent.cc
   kinematics/ValenciaRPA.cc
@@ -39,11 +40,13 @@ add_library(nuflow SHARED
   kinematics/DISKinematics.cc
   kinematics/MECCurrent.cc
   kinematics/MECKinematics.cc
+  kinematics/CoherentPionKinematics.cc
   channel/CCQEChannel.cc
   channel/CCRESChannel.cc
   channel/CCDISChannel.cc
   channel/CCNStarChannel.cc
   channel/CCMECChannel.cc
+  channel/CCCOHChannel.cc
   channel/ChannelSelector.cc
   fsi/TransparentNucleus.cc
   fsi/NuclearDensity.cc
@@ -94,6 +97,7 @@ if(NUFLOW_BUILD_TESTS)
     tests/test_mec.cc
     tests/test_cascade.cc
     tests/test_nstar.cc
+    tests/test_coherent.cc
     tests/test_lfg.cc
   )
   target_link_libraries(nuflow-tests PRIVATE nuflow Catch2::Catch2WithMain)

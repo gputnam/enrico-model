@@ -160,7 +160,7 @@ The agreement is good up to 3 GeV. Above that the data include higher resonances
 - **No in-medium Δ modification.** The Δ self-energy and width in the nucleus (Oset–Salcedo) and RPA are not included.
 - **Pion FSI** is now applied by the cascade ([fsi_cascade.md](fsi_cascade.md)). In ME events, 19.8% of primary π⁺ on carbon are absorbed and 5.2% are charge-exchanged. Δ-peak absorption is about 2× below the π–¹²C data, so the FSI loss is probably underestimated. The Δ is produced and decays at the vertex: there is no Δ propagation and no in-medium Δ in the primary production.
 - **Δ in 2p2h.** The Δ-MEC of the `CCMEC` channel ([mec.md](mec.md)) uses the same N–Δ vertex ($C_5^A(0)=1.00$, $M_A^\Delta=0.93$ GeV) but only the real part of the Δ propagator, following Ruiz Simo *et al.*, to limit double counting with real pion emission here. The split between the two channels is model dependent.
-- **No coherent pion production.** Coherent production (process 100) is a separate channel.
+- **Coherent pion production** (process 100) is a separate channel, `CCCOH` ([coherent_pion.md](coherent_pion.md)).
 
 ## References
 

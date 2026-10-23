@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "channel/CCQEChannel.h"
+#include "channel/CCCOHChannel.h"
 #include "channel/CCDISChannel.h"
 #include "channel/CCMECChannel.h"
 #include "channel/CCRESChannel.h"
@@ -13,10 +14,12 @@
 #include "fsi/IntranuclearCascade.h"
 #include "fsi/TransparentNucleus.h"
 #include "initial_state/FreeNucleon.h"
+#include "initial_state/GroundStateNucleus.h"
 #include "initial_state/LocalFermiGas.h"
 #include "initial_state/RelativisticFermiGas.h"
 #include "initial_state/ShellModelSpectralFunction.h"
 #include "kinematics/QuasiElasticKinematics.h"
+#include "kinematics/CoherentPionKinematics.h"
 #include "kinematics/DISKinematics.h"
 #include "kinematics/MECKinematics.h"
 #include "kinematics/NStarKinematics.h"
@@ -215,6 +218,23 @@ std::vector<std::shared_ptr<InteractionChannel>> MakeChannels(const YAML::Node& 
       o.q3Max = Get<double>(c, "q3_max", o.q3Max);
       auto kin = std::make_shared<MECKinematics>(MECCurrent(par, NucleonFormFactors::FromConfig(nff)), o);
       out.push_back(std::make_shared<CCMECChannel>(MakeGlobalNuclearModel(c["nuclear_model"], type), freeNucleon, kin));
+    } else if (type == "CCCOH") {
+      // CC coherent pion production, Berger-Sehgal PCAC model with pi-12C elastic data and the
+      // lepton-mass (pion-pole) correction (theory/coherent_pion.md). No nuclear_model: the nucleus
+      // stays in its ground state.
+      PionNucleusElastic::Parameters ep;
+      const YAML::Node e = c["elastic"];
+      ep.R0 = Get<double>(e, "R0", ep.R0);
+      ep.tableMaxT = Get<double>(e, "table_max_T", ep.tableMaxT);
+      ep.rsMinT = Get<double>(e, "rs_min_T", ep.rsMinT);
+      if (ep.rsMinT < ep.tableMaxT) throw std::runtime_error(type + ": rs_min_T must be >= table_max_T");
+      CoherentPionKinematics::Options o;
+      o.fPi = Get<double>(c, "f_pi", o.fPi);
+      o.mA = Get<double>(c, "mA", o.mA);
+      o.leptonMassCorrection = Get<bool>(c, "lepton_mass_correction", o.leptonMassCorrection);
+      o.proposalSlope = Get<double>(c, "proposal_slope", o.proposalSlope);
+      auto kin = std::make_shared<CoherentPionKinematics>(PionNucleusElastic(ep), o);
+      out.push_back(std::make_shared<CCCOHChannel>(std::make_shared<GroundStateNucleus>(), freeNucleon, kin));
     } else {
       throw std::runtime_error("channels: unknown type '" + type + "'");
     }
