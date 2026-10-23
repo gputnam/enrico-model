@@ -52,20 +52,26 @@ SachsFormFactors BBBA05FormFactors::Sachs(double Q2) const {
   return s;
 }
 
-ZExpansionAxialFormFactor::ZExpansionAxialFormFactor(double gA, std::array<double, 4> a1to4, double tcut, double t0)
+ZExpansionAxialFormFactor::ZExpansionAxialFormFactor(double gA, const std::vector<double>& aFree, double tcut,
+                                                     double t0)
     : tcut_(tcut), t0_(t0) {
-  // Unknowns x = (a0, a5, a6, a7, a8). Row 0: F_A(0) = gA. Rows 1..4: sum_k k^n a_k = 0, n = 0..3.
+  if (aFree.empty()) throw std::runtime_error("z-expansion: need at least one free coefficient a_1");
+  if (tcut <= 0 || t0 >= tcut) throw std::runtime_error("z-expansion: need tcut > 0 and t0 < tcut");
+  const int nFree = int(aFree.size());
+  const int kmax = nFree + 4;
+  a_.assign(kmax + 1, 0.0);
+  // Unknowns x = (a0, a_{kmax-3}, ..., a_kmax). Row 0: F_A(0) = gA. Rows 1..4: sum_k k^n a_k = 0, n = 0..3.
   const double z0 = Z(0.0);
-  const int unknown[5] = {0, 5, 6, 7, 8};
+  const int unknown[5] = {0, kmax - 3, kmax - 2, kmax - 1, kmax};
   double m[5][6] = {};
   for (int j = 0; j < 5; ++j) m[0][j] = std::pow(z0, unknown[j]);
   double rhs0 = gA;
-  for (int k = 1; k <= 4; ++k) rhs0 -= a1to4[k - 1] * std::pow(z0, k);
+  for (int k = 1; k <= nFree; ++k) rhs0 -= aFree[k - 1] * std::pow(z0, k);
   m[0][5] = rhs0;
   for (int n = 0; n < 4; ++n) {
     for (int j = 0; j < 5; ++j) m[n + 1][j] = std::pow(double(unknown[j]), n);  // 0^0 = 1
     double r = 0;
-    for (int k = 1; k <= 4; ++k) r -= std::pow(double(k), n) * a1to4[k - 1];
+    for (int k = 1; k <= nFree; ++k) r -= std::pow(double(k), n) * aFree[k - 1];
     m[n + 1][5] = r;
   }
   // Gaussian elimination with partial pivoting.
@@ -81,7 +87,7 @@ ZExpansionAxialFormFactor::ZExpansionAxialFormFactor(double gA, std::array<doubl
       for (int j = c; j < 6; ++j) m[r][j] -= f * m[c][j];
     }
   }
-  for (int k = 1; k <= 4; ++k) a_[k] = a1to4[k - 1];
+  for (int k = 1; k <= nFree; ++k) a_[k] = aFree[k - 1];
   for (int j = 0; j < 5; ++j) a_[unknown[j]] = m[j][5] / m[j][j];
 }
 
@@ -93,7 +99,7 @@ double ZExpansionAxialFormFactor::Z(double Q2) const {
 double ZExpansionAxialFormFactor::FA(double Q2) const {
   const double z = Z(Q2);
   double r = 0;
-  for (int k = 8; k >= 0; --k) r = r * z + a_[k];
+  for (int k = int(a_.size()) - 1; k >= 0; --k) r = r * z + a_[k];
   return r;
 }
 
@@ -126,11 +132,11 @@ NucleonFormFactors NucleonFormFactors::FromConfig(const YAML::Node& node) {
     ax = std::make_shared<DipoleAxialFormFactor>(gA, Get<double>(node, "MA", 1.03));
   } else if (a == "zexp") {
     // Defaults: central values of the deuterium fit of Meyer et al. (sign flipped to F_A(0) > 0).
-    std::array<double, 4> c = {-2.30, 0.6, 3.8, -2.3};
+    // zexp_a lists the free coefficients a_1..a_{kmax-4}; kmax = length + 4 (4 sum rules).
+    std::vector<double> c = {-2.30, 0.6, 3.8, -2.3};
     if (node["zexp_a"]) {
-      auto list = node["zexp_a"].as<std::vector<double>>();
-      if (list.size() != 4) throw std::runtime_error("form factors: zexp_a needs a1..a4");
-      for (int i = 0; i < 4; ++i) c[i] = list[i];
+      c = node["zexp_a"].as<std::vector<double>>();
+      if (c.empty()) throw std::runtime_error("form factors: zexp_a needs at least a1");
     }
     const double mpi = 0.14;
     ax = std::make_shared<ZExpansionAxialFormFactor>(gA, c, Get<double>(node, "tcut", 9 * mpi * mpi),

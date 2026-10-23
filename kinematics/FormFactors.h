@@ -9,6 +9,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <yaml-cpp/yaml.h>
 
@@ -68,21 +69,24 @@ class DipoleAxialFormFactor : public AxialFormFactorModel {
   double gA_, MA2_;
 };
 
-// Model-independent z expansion: F_A = sum_k a_k z^k with
+// Model-independent z expansion: F_A = sum_{k=0}^{kmax} a_k z^k with
 //   z = (sqrt(tcut + Q2) - sqrt(tcut - t0)) / (sqrt(tcut + Q2) + sqrt(tcut - t0)).
-// The free parameters a_1..a_4 are given; a_0 fixes F_A(0) = g_A and a_5..a_8 are fixed by the
-// four sum rules sum_k k^n a_k = 0 (n = 0..3) that impose F_A ~ 1/Q^4 at large Q2
+// The free parameters a_1..a_{kmax-4} are given (kmax = number of free coefficients + 4); a_0 fixes
+// F_A(0) = g_A and the last four, a_{kmax-3}..a_{kmax}, are fixed by the four sum rules
+// sum_k k^n a_k = 0 (n = 0..3) that impose F_A ~ 1/Q^4 at large Q2
 // (Meyer, Betancourt, Gran & Hill, Phys. Rev. D 93, 113015 (2016) [arXiv:1603.03048]).
+// Deuterium fit: 4 free coefficients (kmax = 8). LQCD average (Meyer, arXiv:2601.02676): 2 (kmax = 6).
 class ZExpansionAxialFormFactor : public AxialFormFactorModel {
  public:
-  ZExpansionAxialFormFactor(double gA, std::array<double, 4> a1to4, double tcut, double t0);
+  ZExpansionAxialFormFactor(double gA, const std::vector<double>& aFree, double tcut, double t0);
   std::string Name() const override { return "z-expansion"; }
   double FA(double Q2) const override;
-  const std::array<double, 9>& Coefficients() const { return a_; }
+  const std::vector<double>& Coefficients() const { return a_; }
+  int KMax() const { return int(a_.size()) - 1; }
 
  private:
   double Z(double Q2) const;
-  std::array<double, 9> a_{};
+  std::vector<double> a_;
   double tcut_, t0_;
 };
 

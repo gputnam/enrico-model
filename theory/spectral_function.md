@@ -119,7 +119,7 @@ the real part of the final-state optical potential shifts the peak down and the 
 redistributes strength to the tails [2,3]. That correction is not included (§4). The RFG's position is
 good because its $\epsilon_b=25$ MeV was historically fitted to these data.
 
-**CCQE cross section** per neutron [$10^{-38}$ cm²], MA = 1.03 GeV:
+**CCQE cross section** per neutron [$10^{-38}$ cm²], MA = 1.03 GeV (with the LQCD axial form factor used since step 25 the SF row becomes 0.929/1.023/0.994/0.980 at 1/3/6/10 GeV; [quasielastic.md](quasielastic.md) §7.2):
 
 | $E_\nu$ [GeV] | 0.5 | 1 | 2 | 3 | 5 | 10 |
 |---|---|---|---|---|---|---|
@@ -140,6 +140,9 @@ factor. The flux-averaged total of the MINERvA ME model falls from 50.26 to 49.3
   current-conserving prescription would change the SRC share of the cross section.
 - **Mean-field occupancies** are IPSM (1.0). The measured 1p spectroscopic strength (~0.6) is
   partly in the SRC part and partly at higher $E$ in the Lorentzian tails; the split is approximate.
+- **Axial form factor:** the SF/RFG and SF/free ratios above were computed with the dipole. The SRC share
+  depends on $F_A$ at the larger de Forest $\tilde Q^2$, so with the slower-falling LQCD $F_A$ (step 25)
+  the SRC nucleons lose less: SF/free at 6 GeV rises from 0.76 to 0.78 (0.994/1.28).
 - **12C only** (and ¹H via `FreeNucleon`). Parameters for other nuclei are not provided.
 - **Long-range (RPA) correlations** are available (`rpa: true`, [local_fermi_gas.md](local_fermi_gas.md) §4), evaluated
   with the local density at the vertex. On top of the SF they are not used in the loop configuration
@@ -193,7 +196,8 @@ channels:
       sigma_cm: 0.15      # pair c.m. width per component [GeV]
       np_fraction: 0.95
       emit_partner: true
-    form_factors: {vector: BBBA05, axial: dipole, MA: 1.03}
+    form_factors: {vector: BBBA05, axial: dipole, MA: 1.03}   # loop config since step 25: LQCD z expansion,
+                          # quasielastic.md §1.3
     rpa: false            # true, or a map (local_fermi_gas.md §7)
 ```
 

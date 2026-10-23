@@ -65,7 +65,7 @@ Runs are configured in YAML (see `config/`).
 | `xsec_table` | Energy nodes, MC samples per node, cache directory |
 
 Channel types:
-- `CCQE`: `nuclear_model` (`RFG`, `LFG` ([theory/local_fermi_gas.md](theory/local_fermi_gas.md)), `SF` (12C spectral function with SRC partner emission, [theory/spectral_function.md](theory/spectral_function.md))), `form_factors: {vector: BBBA05|dipole, axial: dipole|zexp, MA, gA, ...}`, `rpa` (Valencia RPA, `true` or a parameter map; default off), `proposal_q2_scale`. `LFG`/`SF` are CCQE-only; the other channels use `RFG`.
+- `CCQE`: `nuclear_model` (`RFG`, `LFG` ([theory/local_fermi_gas.md](theory/local_fermi_gas.md)), `SF` (12C spectral function with SRC partner emission, [theory/spectral_function.md](theory/spectral_function.md))), `form_factors: {vector: BBBA05|dipole, axial: dipole|zexp, MA, gA, zexp_a (free a1..a_{kmax-4}), tcut, t0}` (the loop config uses the LQCD-average z expansion of Meyer 2026, [theory/quasielastic.md](theory/quasielastic.md) §1.3), `rpa` (Valencia RPA, `true` or a parameter map; default off), `proposal_q2_scale`. `LFG`/`SF` are CCQE-only; the other channels use `RFG`.
 - `CCRES` (single pion, Δ region, [theory/pion_production.md](theory/pion_production.md)): `nuclear_model`,
   `delta: {C5A0: 1.00, MA: 0.93, mass: 1.232, f_star: 2.14}`, `background: true|false`,
   `nucleon_form_factors` (background terms; default dipole/Galster, gA 1.26, MA 1.05), `w_max` (default 1.6 GeV),

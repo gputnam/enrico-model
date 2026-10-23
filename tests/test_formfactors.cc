@@ -77,3 +77,31 @@ TEST_CASE("z-expansion axial form factor", "[formfactors]") {
     CHECK(std::abs(f / (gA / std::pow(1 + Q2, 2)) - 1) < 0.15);
   }
 }
+
+TEST_CASE("z-expansion axial form factor: LQCD average (Meyer 2026)", "[formfactors]") {
+  // A.S. Meyer, arXiv:2601.02676, Table I and Eqs. (53)-(55): kmax = 6 fit to derivatives of five
+  // LQCD results, g_A = 1.2754 (PDG), tcut = 9 (0.134 GeV)^2, t0 = -0.50 GeV^2, four sum rules.
+  const double gA = 1.2754, tcut = 9 * 0.134 * 0.134, t0 = -0.50;
+  ZExpansionAxialFormFactor z(gA, {-1.70104640, 0.26324902}, tcut, t0);
+  REQUIRE(z.KMax() == 6);
+  const double pub[7] = {0.72115656, -1.70104640, 0.26324902, 1.53433681, 0.01061114, -1.49893610, 0.67062898};
+  const auto& a = z.Coefficients();
+  for (int k = 0; k <= 6; ++k) {
+    INFO("k = " << k);
+    CHECK(a[k] == Approx(pub[k]).margin(2e-6));
+  }
+  CHECK(z.FA(0) == Approx(gA).epsilon(1e-12));
+  CHECK(z.FA(0.5) == Approx(a[0]).epsilon(1e-9));  // z(Q2 = -t0) = 0
+  // Falls monotonically and more slowly than the deuterium dipole (M_A = 1.03 GeV) above Q2 ~ 0.1.
+  double prev = z.FA(0);
+  for (double Q2 = 0.05; Q2 <= 5.0; Q2 += 0.05) {
+    const double f = z.FA(Q2);
+    CHECK(f < prev);
+    CHECK(f > 0);
+    prev = f;
+  }
+  const double dip1 = 1.2723 / std::pow(1 + 1.0 / (1.03 * 1.03), 2);
+  CHECK(z.FA(1.0) / dip1 == Approx(1.461).margin(0.005));
+  // Q^-4 asymptotics: Q^4 F_A tends to a constant.
+  CHECK(z.FA(1e6) * 1e12 / (z.FA(1e4) * 1e8) == Approx(1.0).margin(0.1));
+}

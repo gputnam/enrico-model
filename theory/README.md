@@ -5,7 +5,7 @@ Each physics component in `nuflow` has a note here describing the model, the equ
 | Note | Component(s) |
 |---|---|
 | [framework.md](framework.md) | Staged sampling algorithm, cross-section tables, unweighting, normalization, reproducibility |
-| [quasielastic.md](quasielastic.md) | Stage 1 `CCQEChannel`, stage 2 `RelativisticFermiGas` / `FreeNucleon`, stage 3 `QuasiElasticKinematics`, `FormFactors`, `QECurrent` |
+| [quasielastic.md](quasielastic.md) | Stage 1 `CCQEChannel`, stage 2 `RelativisticFermiGas` / `FreeNucleon`, stage 3 `QuasiElasticKinematics`, `FormFactors` (BBBA05; dipole, deuterium and LQCD-average z-expansion axial form factors), `QECurrent`, `apps/nuflow-qe-table` |
 | [spectral_function.md](spectral_function.md) | Stage 2 `ShellModelSpectralFunction` (12C HO shells + (e,e'p) removal energies + SRC np pairs with partner emission, local Pauli blocking, vertex position handed to the cascade) |
 | [local_fermi_gas.md](local_fermi_gas.md) | Stage 2 `LocalFermiGas` (Q-value energy balance) and stage 3 `ValenciaRPA` (Nieves–Amaro–Valverde RPA, `rpa: true`), `apps/nuflow-lfg-validate` |
 | [pion_production.md](pion_production.md) | Stage 1 `CCRESChannel`, stage 3 `ResonantPionKinematics`, `PionProductionCurrent` (HNV Δ(1232) + chiral background), `core/Dirac.h` |

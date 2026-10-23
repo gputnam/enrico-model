@@ -74,16 +74,31 @@ An alternative (`vector: dipole`) is the dipole $G_D=(1+Q^2/M_V^2)^{-2}$ with $M
 ### 1.3 Axial and pseudoscalar form factors
 
 - **Dipole** (`axial: dipole`, the default): $F_A = g_A\,(1+Q^2/M_A^2)^{-2}$, with $M_A = 1.03$ GeV by default. This is close to the deuterium-bubble-chamber world average $M_A=1.014\pm0.014$ GeV quoted in [8].
-- **z expansion** (`axial: zexp`) [8]: $F_A = \sum_{k=0}^{8} a_k z^k$, where
+- **z expansion** (`axial: zexp`) [8, 9]: $F_A = \sum_{k=0}^{k_\text{max}} a_k z^k$, where
 $$
-z = \frac{\sqrt{t_\text{cut}+Q^2}-\sqrt{t_\text{cut}-t_0}}{\sqrt{t_\text{cut}+Q^2}+\sqrt{t_\text{cut}-t_0}},\qquad
-t_\text{cut} = 9m_\pi^2,\ \ t_0=-0.28\ \text{GeV}^2 .
+z = \frac{\sqrt{t_\text{cut}+Q^2}-\sqrt{t_\text{cut}-t_0}}{\sqrt{t_\text{cut}+Q^2}+\sqrt{t_\text{cut}-t_0}} .
 $$
-  - The free parameters $a_1..a_4$ default to the deuterium-fit central values of [8]: $(2.30,-0.6,-3.8,2.3)$, sign-flipped to our $F_A(0)>0$ convention.
+  - The free parameters are $a_1..a_{k_\text{max}-4}$ (`zexp_a`; their number sets $k_\text{max}$).
   - $a_0$ is fixed by $F_A(0)=g_A$.
-  - $a_5..a_8$ follow from the four sum rules. Ref. [8] (Eq. 16) writes them with falling factorials, $\sum_{k\ge n} k(k-1)\cdots(k-n+1)\,a_k=0$ for $n=0..3$. These span the same constraints as $\sum_k k^n a_k=0$, which is how they are implemented. They make $F_A\sim Q^{-4}$ at large $Q^2$.
-  - $t_\text{cut}$ uses $m_\pi = 0.14$ GeV, and $t_0$ is the optimal choice for $Q^2_\text{max}=1$ GeV² [8, Eqs. 14–15].
-  - The $5\times5$ linear system is solved when the object is constructed (`ZExpansionAxialFormFactor`). The result reproduces the published form factor to better than 3% for $Q^2<1$ GeV² (`tests/test_formfactors.cc`). Individual high-order coefficients differ from the rounded published values, because the sum rules amplify the rounding of $a_1..a_4$.
+  - The last four, $a_{k_\text{max}-3}..a_{k_\text{max}}$, follow from the four sum rules. Ref. [8] (Eq. 16) writes them with falling factorials, $\sum_{k\ge n} k(k-1)\cdots(k-n+1)\,a_k=0$ for $n=0..3$. These span the same constraints as $\sum_k k^n a_k=0$, which is how they are implemented. They make $F_A\sim Q^{-4}$ at large $Q^2$.
+  - The $5\times5$ linear system is solved when the object is constructed (`ZExpansionAxialFormFactor`).
+  - Two coefficient sets are documented; both use our $F_A(0)>0$ convention:
+
+| set | source | $g_A$ | $t_\text{cut}$ [GeV²] | $t_0$ [GeV²] | $k_\text{max}$ | free $a_k$ |
+|---|---|---|---|---|---|---|
+| deuterium (code default) | Meyer *et al.* 2016 [8], Eq. 31 | 1.2723 | $9(0.14)^2$ | −0.28 | 8 | $a_{1..4}=(-2.30, 0.6, 3.8, -2.3)$ |
+| **LQCD average (loop config since step 25)** | Meyer 2026 [14], Table I, Eqs. 53–55 | 1.2754 | $9(0.134)^2=0.161604$ | −0.50 | 6 | $a_{1,2}=(-1.70104640, 0.26324902)$ |
+
+  - *Deuterium set.* The fit of [8] to the ANL, BNL, BEBC and FNAL deuterium bubble-chamber data. It reproduces the published form factor to better than 3% for $Q^2<1$ GeV² (`tests/test_formfactors.cc`). Individual high-order coefficients differ from the rounded published values, because the sum rules amplify the rounding of $a_1..a_4$.
+  - *LQCD-average set* [14]. A fit to the form factor and its $Q^2$ derivatives from five lattice-QCD calculations with full error budgets: RQCD 2020 [15], Djukanovic *et al.* (Mainz) 2022 [16], NME 2022, PNDME 2024 and ETM 2024. Correlations between results on shared gauge ensembles are handled by covariance derating. $g_A$ is the PDG neutron-β-decay value, not the lattice one. No neutrino-scattering data enter this set: [14] also shows the MINERvA $\bar\nu p$ fit and a combined LQCD+MINERvA fit only as comparisons. Our solver reproduces the published $a_0, a_3..a_6 = (0.72115656, 1.53433681, 0.01061114, -1.49893610, 0.67062898)$ to $<2\times10^{-6}$ (test). The published covariance of $(a_1,a_2)$ is $\begin{pmatrix}0.00175929 & -0.00294651\\ -0.00294651 & 0.00807158\end{pmatrix}$ (Eq. 54). It gives a relative 1σ band of 0.6/1.2/2.2/3.3/4.0% at $Q^2$ = 0.1/0.5/1/2/3 GeV², and $r_A^2 = 0.369(30)$ fm². The data constrain $Q^2\lesssim1$ GeV²; above that, the shape follows from the sum rules.
+
+  Ratio of the LQCD average to the deuterium dipole ($M_A$ = 1.03 GeV, $g_A$ = 1.2723) used before step 25:
+
+| $Q^2$ [GeV²] | 0 | 0.1 | 0.25 | 0.5 | 1 | 1.5 | 2 | 3 |
+|---|---|---|---|---|---|---|---|---|
+| $F_A^\text{LQCD}/F_A^\text{dip}$ | 1.002 | 1.040(6) | 1.108(9) | 1.227(15) | 1.461(32) | 1.680(48) | 1.882(62) | 2.244(89) |
+
+  The slower fall-off is the generic LQCD result [13, 14]: an equivalent dipole fit gives $M_A\approx1.21$ GeV, but it still does not reproduce the shape [14]. The same review [13] quotes a 30–40% increase of the free-nucleon QE cross section above 1 GeV. The tension with deuterium is unresolved. Ref. [14] reports that the MINERvA $\bar\nu$–hydrogen extraction is compatible with the LQCD average ($\Delta\chi^2\approx3.2$, 1 dof) and that both disagree with the deuterium fits. It suggests uncontrolled nuclear or normalization systematics in the deuterium analyses.
 - **Pseudoscalar**, from PCAC with pion-pole dominance:
 $$
 F_P(Q^2) = \frac{2M^2}{m_\pi^2+Q^2}\,F_A(Q^2).
@@ -363,6 +378,26 @@ With the z-expansion axial form factor, the free-nucleon cross sections agree wi
 
 All values in units of $10^{-39}$ cm².
 
+**LQCD-average axial form factor (step 25).** The same machinery with the set of Meyer 2026 [14] (`apps/nuflow-qe-table`, BBBA05, 2×10⁵ trials). Free-nucleon Llewellyn Smith cross sections [$10^{-38}$ cm²]:
+
+| $E_\nu$ [GeV] | 0.5 | 1 | 2 | 3 | 5 | 10 | 20 |
+|---|---|---|---|---|---|---|---|
+| $\nu n$, dipole 1.03 | 0.819 | 1.072 | 1.066 | 1.031 | 0.994 | 0.963 | 0.947 |
+| $\nu n$, LQCD | 0.903 | 1.281 | 1.346 | 1.322 | 1.284 | 1.247 | 1.228 |
+| $\bar\nu p$, dipole 1.03 | 0.223 | 0.391 | 0.579 | 0.672 | 0.762 | 0.841 | 0.885 |
+| $\bar\nu p$, LQCD | 0.241 | 0.432 | 0.669 | 0.799 | 0.933 | 1.058 | 1.129 |
+
+LQCD/dipole is 1.10 at 0.5 GeV, 1.19 at 1 GeV and 1.28–1.30 above 3 GeV for $\nu n$. For $\bar\nu p$ it is 1.08, 1.10, 1.19 and 1.26–1.28. This is the 30–40% enhancement quoted in [13]. It is **not** compatible with the deuterium bubble-chamber cross sections (ANL, BNL, FNAL, BEBC), which lie around 0.9–1.0 above 2 GeV. Those data are what the dipole $M_A\approx1.0$ GeV and the deuterium $z$ expansion were fitted to: the deuterium $z$ set gives 0.96 at 3 GeV. The LQCD set overshoots them by ≈ 30%, and we keep it in the loop model knowingly. Refs. [13, 14] attribute the tension to deuterium-analysis systematics, and the $\bar\nu$–hydrogen data agree with LQCD.
+
+On carbon with the spectral function ([spectral_function.md](spectral_function.md)), $\sigma_\text{CCQE}$ per neutron [$10^{-38}$ cm²] (`nuflow-xsec`, no FSI):
+
+| $E_\nu$ [GeV] | 1 | 3 | 6 | 10 |
+|---|---|---|---|---|
+| SF, dipole 1.03 | 0.764 | 0.777 | 0.747 | 0.734 |
+| SF, LQCD | 0.929 | 1.023 | 0.994 | 0.980 |
+
+NOMAD measured $0.92\pm0.02\pm0.06$ per neutron on a carbon-dominated target at 3–100 GeV [17], and $0.81\pm0.05\pm0.08$ per proton for $\bar\nu$. The SF+LQCD value is within 1σ of it. The SF+dipole value is 2.9σ below. NOMAD's efficiency correction itself relied on an RFG nuclear model, so the comparison is indicative. Flux-averaged over the MINERvA ME FHC flux on CH, the CCQE cross section rises from 4.500 to 5.973 ×10⁻³⁸ cm² per CH (+33%). The total CC cross section rises from 49.70 to 51.17 (+3.0%), i.e. 3.82 → 3.94 ×10⁻³⁸ cm² per nucleon.
+
 ### 7.3 Nuclear effects
 
 ![CCQE cross sections](figures/ccqe_xsec.png)
@@ -401,6 +436,7 @@ The panels show $E_\nu$ with $\Phi(E)\sigma(E)$ overlaid, $Q^2$, $p_\mu$, $\cos\
 - **Long-range correlations:** the Valencia RPA [10] is available as `rpa: true` ([local_fermi_gas.md](local_fermi_gas.md) §4); it is off by default.
 - **Coulomb corrections** to the outgoing charged lepton are not included. They matter at low energy and for heavy nuclei.
 - **Off-shell ambiguity:** the de Forest prescription is one of several choices. The current is not conserved at order $\epsilon_b$, and the hadron-tensor contraction, Eq. (5), uses the average nucleon mass. Both are sub-percent effects at GeV energies.
+- **Axial form factor:** the loop uses the LQCD average [14] (§1.3). It is constrained for $Q^2\lesssim1$ GeV². Above that, its shape follows from the four sum rules ($F_A/F_A^\text{dip}$ = 2.2 at 3 GeV², with a quoted 4% band that does not include the truncation choice $k_\text{max}$). The kmax = 7 and sampled-method variants of [14] differ by up to ±4% at 2–3 GeV². The resonance (HNV background, $M_A$ = 1.05) and MEC channels keep their own dipole axial form factors. The free-nucleon cross section is ≈ 30% above the deuterium data (§7.2).
 - **Second-class currents and isospin breaking** are neglected, with $G_E^V$ and $G_M^V$ from isospin symmetry.
 - **Multinucleon (2p2h/MEC)** is the separate `CCMEC` channel ([mec.md](mec.md)), relativistic MEC in the same RFG; NN-correlation (1p1h–2p2h interference) terms are not included. Single-pion production in the Δ region is the separate `CCRES` channel ([pion_production.md](pion_production.md)), and inelastic scattering above $W=1.6$ GeV is `CCDIS` ([dis.md](dis.md)).
 - **FSI** is applied by the cascade ([fsi_cascade.md](fsi_cascade.md)). With `RFG` the cascade's local density and local $k_F$ and the vertex's global RFG ($k_F$ = 0.221 GeV, $\epsilon_b$ = 25 MeV) are consistent only on average. With `SF` or `LFG` the vertex position, local Pauli blocking and the cascade use the same density.
@@ -422,10 +458,11 @@ channels:
       vector: BBBA05            # or: dipole (with MV2, default 0.71 GeV^2) + Galster G_En
       axial: dipole             # or: zexp
       MA: 1.03                  # [GeV], dipole only
-      gA: 1.2723
-      zexp_a: [-2.30, 0.6, 3.8, -2.3]   # a1..a4, zexp only (F_A(0) > 0 convention)
-      tcut: 0.1764              # 9 m_pi^2 [GeV^2], zexp only
-      t0: -0.28                 # [GeV^2], zexp only
+      gA: 1.2723                # loop config (LQCD set): 1.2754
+      zexp_a: [-2.30, 0.6, 3.8, -2.3]   # free a1..a_{kmax-4}, zexp only (F_A(0) > 0 convention); kmax = len + 4
+                                        # LQCD average (Meyer 2026): [-1.70104640, 0.26324902]
+      tcut: 0.1764              # 9 m_pi^2 [GeV^2], zexp only; LQCD set: 0.161604
+      t0: -0.28                 # [GeV^2], zexp only; LQCD set: -0.50
     rpa: false                  # Valencia RPA (local_fermi_gas.md section 4)
     proposal_q2_scale: 0.6      # Lambda^2 of the angular proposal [GeV^2]; affects efficiency only
 ```
@@ -446,3 +483,8 @@ channels:
 10. J. Nieves, J. E. Amaro and M. Valverde, "Inclusive quasielastic charged-current neutrino-nucleus reactions", *Phys. Rev. C* **70**, 055503 (2004), [nucl-th/0408005](https://arxiv.org/abs/nucl-th/0408005).
 11. J. A. Formaggio and G. P. Zeller, "From eV to EeV: Neutrino cross sections across energy scales", *Rev. Mod. Phys.* **84**, 1307 (2012), [arXiv:1305.7513](https://arxiv.org/abs/1305.7513).
 12. L. Aliaga *et al.* (MINERvA), "Neutrino flux predictions for the NuMI beam", *Phys. Rev. D* **94**, 092005 (2016), [arXiv:1607.00704](https://arxiv.org/abs/1607.00704).
+13. A. S. Meyer, A. Walker-Loud and C. Wilkinson, "Status of lattice QCD determination of nucleon form factors and their relevance for the few-GeV neutrino program", *Ann. Rev. Nucl. Part. Sci.* **72**, 205 (2022), [arXiv:2201.01839](https://arxiv.org/abs/2201.01839).
+14. A. S. Meyer, "The nucleon axial form factor from averaging lattice QCD results", [arXiv:2601.02676](https://arxiv.org/abs/2601.02676) (2026). Table I, Eqs. (53)–(56), Fig. 13.
+15. G. S. Bali *et al.* (RQCD), "Nucleon axial structure from lattice QCD", *JHEP* **05**, 126 (2020), [arXiv:1911.13150](https://arxiv.org/abs/1911.13150).
+16. D. Djukanovic, G. von Hippel, J. Koponen, H. B. Meyer, K. Ottnad, T. Schulz and H. Wittig, "The isovector axial form factor of the nucleon from lattice QCD", *Phys. Rev. D* **106**, 074503 (2022), [arXiv:2207.03440](https://arxiv.org/abs/2207.03440).
+17. NOMAD Collaboration, V. Lyubushkin *et al.*, "A study of quasi-elastic muon neutrino and antineutrino scattering in the NOMAD experiment", *Eur. Phys. J. C* **63**, 355 (2009), [arXiv:0812.4543](https://arxiv.org/abs/0812.4543).

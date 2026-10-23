@@ -2,13 +2,16 @@
 // For each energy prints, per struck nucleon [1e-38 cm^2]:
 //   the Llewellyn Smith dsigma/dQ2 integrated over Q2 (free nucleon at rest, average nucleon mass),
 //   the nuflow Monte Carlo for a free nucleon, the nuflow Monte Carlo for 12C (RFG), and C/free,
-// for nu_mu n and nubar_mu p, with the dipole and z-expansion axial form factors.
+// for nu_mu n and nubar_mu p, with the dipole (M_A = 1.03 GeV), the deuterium z-expansion
+// (Meyer et al. 2016) and the LQCD-average z-expansion (Meyer, arXiv:2601.02676) axial form factors.
 //
 //   nuflow-qe-table [samples per point, default 1e6]
 
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <vector>
 
 #include "core/Constants.h"
 #include "core/Nucleus.h"
@@ -55,11 +58,18 @@ int main(int argc, char** argv) {
   const auto& db = NuclearDatabase::Instance();
   FreeNucleon free;
   RelativisticFermiGas rfg;
-  for (const char* axial : {"dipole", "zexp"}) {
+  for (const std::string set : {"dipole", "zexp", "zexp_lqcd"}) {
     YAML::Node c;
     c["vector"] = "BBBA05";
-    c["axial"] = axial;
+    c["axial"] = set == "dipole" ? "dipole" : "zexp";
     c["MA"] = 1.03;
+    if (set == "zexp_lqcd") {
+      c["gA"] = 1.2754;
+      c["tcut"] = 9 * 0.134 * 0.134;
+      c["t0"] = -0.50;
+      c["zexp_a"] = std::vector<double>{-1.70104640, 0.26324902};
+    }
+    const char* axial = set.c_str();
     const auto ff = NucleonFormFactors::FromConfig(c);
     QuasiElasticKinematics kin(ff);
     std::printf("# axial=%s\n# E   LS(nu n)  MC(nu n)  C12/neutron  ratio   LS(nubar p) MC(nubar p) C12/proton ratio\n",
