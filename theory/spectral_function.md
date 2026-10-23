@@ -130,7 +130,7 @@ good because its $\epsilon_b=25$ MeV was historically fitted to these data.
 SF/RFG ≈ 0.85 above 1 GeV, roughly independent of $Q^2$. The mean field alone gives 0.945; the SRC
 nucleons contribute about half the per-nucleon cross section of mean-field nucleons, because their
 large off-shellness ($E_R\sim$ 0.1–0.5 GeV) moves the de Forest $\tilde Q^2$ above $Q^2$ and costs form
-factor. The flux-averaged total of the MINERvA ME model falls from 50.26 to ≈49.4 ×10⁻³⁸ cm² per CH.
+factor. The flux-averaged total of the MINERvA ME model falls from 50.26 to 49.35 ×10⁻³⁸ cm² per CH.
 
 ## 4. Limitations
 
@@ -166,11 +166,12 @@ needed to keep the factors finite for spectral-function kinematics (both are doc
    (they reached $10^{10}$ before); at $|\mathbf q|>0.15$ GeV the change from $\Gamma_{ph}$ is < 3%.
 
 RPA reduces $\sigma_\text{CCQE}$ by another 8% (table above) and $d\sigma/dQ^2$ by 25–30% at
-$Q^2<0.1$ GeV², crossing 1 at $Q^2\approx0.4$ GeV². In the step-17 corpus trial (SF+RPA vs SF) it
-flattened the QE-like $p_T$ shape and improved ccqelike_3d_le (χ² 4738 → 3738) and the STKI
-$\delta\alpha_T$/$\delta\phi_T$ shapes, but pushed ccinc_eavail_q3 at $q_3=0.2$–0.6 GeV and
-$E_\text{avail}<0.06$ GeV down to 0.4–0.6 of the data (χ² 114k → 157k) and the QE-like normalisation
-from 0.80 to 0.75. Since the SF's local Pauli blocking and removal-energy spread already provide the
+$Q^2<0.1$ GeV², crossing 1 at $Q^2\approx0.4$ GeV². In the step-17 corpus comparison (SF+RPA trial vs
+the SF model v6) it flattened the QE-like $p_T$ shape below 0.85 GeV and improved ccqelike_3d_le
+(χ² 4609 → 3738) and the STKI $\delta\alpha_T$/$\delta\phi_T$ shapes, but pushed ccinc_eavail_q3 at
+$q_3=0.2$–0.6 GeV and $E_\text{avail}<0.06$ GeV down to 0.4–0.6 of the data (per-$q_3$ integrals
+0.86/0.84/0.82 → 0.62/0.61/0.67 for $q_3<0.4$; χ² 103k → 157k) and the QE-like normalisation from 0.80
+to 0.75. Since the SF's local Pauli blocking and removal-energy spread already provide the
 low-$q_3$ reduction that ccinc_eavail_q3 asks for, and the RPA of Ref. [11] is derived for the LFG
 particle-hole response rather than for a spectral function, the loop configuration leaves it off.
 
